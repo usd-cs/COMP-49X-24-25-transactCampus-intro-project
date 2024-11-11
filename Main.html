@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Page</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+    <!-- Sidebar with University Logo -->
+    <div class="sidebar">
+        <img src="images/USD_LOGO.png" alt="University Logo" class="logo">
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content">
+        <!-- Navbar with Login/Logout Button -->
+        <div class="navbar">
+            <button id="auth-button" class="auth-button">Log In</button>
+        </div>
+
+        <!-- Post Creation Area (only visible when logged in) -->
+        <div id="create-post" class="create-post hidden">
+            <textarea id="post-content" placeholder="Create a Post:"></textarea>
+            <button class="post-button">Post</button>
+        </div>
+
+        <!-- Posts Section -->
+        <div id="posts-section" class="posts">
+            <!-- Posts will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- Script for Dynamic Content and Role-based UI Rendering -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Set role to 'admin' for testing purposes
+            //localStorage.setItem("role", "user");
+
+            const role = localStorage.getItem("role");
+            const authButton = document.getElementById("auth-button");
+            const createPostArea = document.getElementById("create-post");
+
+            // Load posts and comments from localStorage
+            const posts = JSON.parse(localStorage.getItem("posts")) || [];
+
+            // Display posts dynamically
+            function loadPosts() {
+                const postsSection = document.getElementById("posts-section");
+                postsSection.innerHTML = "";  // Clear existing content
+
+                posts.forEach(post => {
+                    const postContainer = document.createElement("div");
+                    postContainer.classList.add("post");
+
+                    const postContent = document.createElement("p");
+                    postContent.classList.add("post-author");
+                    postContent.innerHTML = `<strong>${post.user}</strong>: ${post.content}`;
+                    postContainer.appendChild(postContent);
+
+                    // Admin delete button
+                    if (role === "admin") {
+                        const deletePostButton = document.createElement("button");
+                        deletePostButton.classList.add("delete-post");
+                        deletePostButton.textContent = "Delete Post";
+                        deletePostButton.addEventListener("click", () => deletePost(post.id));
+                        postContainer.appendChild(deletePostButton);
+                    }
+
+                    // Comments section
+                    const commentsContainer = document.createElement("div");
+                    commentsContainer.classList.add("comments");
+                    const comments = JSON.parse(localStorage.getItem(`commentsForPost${post.id}`)) || [];
+                    comments.forEach(comment => {
+                        const commentElement = document.createElement("div");
+                        commentElement.classList.add("comment");
+                        commentElement.innerHTML = `<p class="comment-author">${comment.user}</p><p class="comment-content">${comment.content}</p>`;
+
+                        // Admin delete button for comments
+                        if (role === "admin") {
+                            const deleteCommentButton = document.createElement("button");
+                            deleteCommentButton.classList.add("delete-comment");
+                            deleteCommentButton.textContent = "Delete Comment";
+                            deleteCommentButton.addEventListener("click", () => deleteComment(post.id, comment.id));
+                            commentElement.appendChild(deleteCommentButton);
+                        }
+
+                        commentsContainer.appendChild(commentElement);
+                    });
+
+                    postContainer.appendChild(commentsContainer);
+
+                    // Add Comment button
+                    const addCommentButton = document.createElement("button");
+                    addCommentButton.classList.add("comment-button");
+                    addCommentButton.textContent = "Add Comment";
+                    addCommentButton.addEventListener("click", () => {
+                        localStorage.setItem("selectedPostId", post.id);
+                        window.location.href = "comment.html";
+                    });
+                    postContainer.appendChild(addCommentButton);
+
+                    postsSection.appendChild(postContainer);
+                });
+            }
+
+            // Post creation
+            if (role === "user" || role === "admin") {
+                authButton.textContent = "Log Out";
+                createPostArea.classList.remove("hidden");
+                createPostArea.querySelector(".post-button").addEventListener("click", createPost);
+            } else {
+                authButton.textContent = "Log In";
+            }
+
+            // Toggle Login/Logout Button
+            authButton.addEventListener("click", () => {
+                if (authButton.textContent === "Log Out") {
+                    localStorage.removeItem("role");
+                    window.location.reload();
+                } else {
+                    window.location.href = "login.html";
+                }
+            });
+
+            // Functions to create a post, delete post, and delete comment
+            function createPost() {
+                const content = document.getElementById("post-content").value;
+                const newPost = {
+                    id: Date.now(),
+                    user: "Current User",
+                    content
+                };
+                posts.push(newPost);
+                localStorage.setItem("posts", JSON.stringify(posts));
+                loadPosts();
+                document.getElementById("post-content").value = "";
+            }
+
+            function deletePost(postId) {
+                const updatedPosts = posts.filter(post => post.id !== postId);
+                localStorage.setItem("posts", JSON.stringify(updatedPosts));
+                loadPosts();
+            }
+
+            function deleteComment(postId, commentId) {
+                const comments = JSON.parse(localStorage.getItem(`commentsForPost${postId}`)) || [];
+                const updatedComments = comments.filter(comment => comment.id !== commentId);
+                localStorage.setItem(`commentsForPost${postId}`, JSON.stringify(updatedComments));
+                loadPosts();
+            }
+
+            // Load initial posts and comments
+            loadPosts();
+        });
+    </script>
+</body>
+</html>
