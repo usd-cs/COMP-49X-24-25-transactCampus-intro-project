@@ -14,7 +14,6 @@ def app():
 
 @pytest.fixture
 def client(app, db_connection):
-    app.config["db_connection"] = db_connection
     return app.test_client()
 
 
