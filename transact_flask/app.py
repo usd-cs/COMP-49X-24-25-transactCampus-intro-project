@@ -8,6 +8,19 @@ def create_app(test_config=None):
     conn = psycopg2.connect(database="intro_project", user="postgres", password="transact", host="localhost", port="5432")
     cur = conn.cursor()
 
+    # Reset tables when restarting app
+    cur.execute(
+        '''DELETE FROM "Comment"'''
+    )
+
+    cur.execute(
+        '''DELETE FROM "Post"'''
+    )
+
+    cur.execute(
+        '''DELETE FROM "User"'''
+    )
+
     # Insert data into the User table and fetch user_ids
     cur.execute(
         '''INSERT INTO "User" (email, name, admin, password) VALUES 
@@ -52,10 +65,7 @@ def create_app(test_config=None):
         (humpfre_id, post1_id, diego_id, post1_id, diego_id, post2_id, jimmy_id, post2_id)
     )
 
-    # Commit the changes
     conn.commit()
-
-    # Close the cursor and connection
     cur.close()
     conn.close()
 
