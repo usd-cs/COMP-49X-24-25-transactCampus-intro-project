@@ -1,0 +1,76 @@
+-- Table: public.User
+
+-- DROP TABLE IF EXISTS public."User";
+
+CREATE TABLE IF NOT EXISTS public."User"
+(
+    id integer NOT NULL DEFAULT nextval('"User_id_seq"'::regclass),
+    email character varying COLLATE pg_catalog."default",
+    name character varying COLLATE pg_catalog."default",
+    admin boolean,
+    password character varying COLLATE pg_catalog."default",
+    CONSTRAINT "User_pkey" PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public."User"
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public."User" TO postgres;
+
+-- Table: public.Post
+
+-- DROP TABLE IF EXISTS public."Post";
+
+CREATE TABLE IF NOT EXISTS public."Post"
+(
+    id integer NOT NULL DEFAULT nextval('"Post_id_seq"'::regclass),
+    contents text COLLATE pg_catalog."default",
+    user_id integer,
+    created_at timestamp without time zone,
+    CONSTRAINT "Post_pkey" PRIMARY KEY (id),
+    CONSTRAINT user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public."User" (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public."Post"
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public."Post" TO postgres;
+
+-- Table: public.Comment
+
+-- DROP TABLE IF EXISTS public."Comment";
+
+CREATE TABLE IF NOT EXISTS public."Comment"
+(
+    id integer NOT NULL DEFAULT nextval('"Comment_id_seq"'::regclass),
+    contents text COLLATE pg_catalog."default",
+    user_id integer,
+    post_id integer,
+    created_at timestamp without time zone,
+    CONSTRAINT "Comment_pkey" PRIMARY KEY (id),
+    CONSTRAINT post_id_fk FOREIGN KEY (post_id)
+        REFERENCES public."Post" (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT user_id_fk FOREIGN KEY (user_id)
+        REFERENCES public."User" (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public."Comment"
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public."Comment" TO postgres;
