@@ -1,4 +1,4 @@
-/* styles.css */
+/* login.css */
 
 /* Basic reset */
 * {
@@ -47,7 +47,7 @@ body {
 }
 
 .logo {
-    width: 300px;
+    width: 250px;
     height: auto;
     margin-bottom: 20px;
 }

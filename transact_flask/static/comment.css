@@ -1,0 +1,117 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 120px;
+    background-color: #f9f9f9;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-right: 1px solid #dcdcdc;
+}
+
+.logo {
+    width: 80px;
+    height: auto;
+}
+
+/* Main Content Styling */
+.content {
+    flex: 1;
+    padding: 40px;
+}
+
+/* Navbar Styling */
+.navbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.home-button {
+    padding: 8px 16px;
+    background-color: #3478f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.home-button:hover {
+    background-color: #2968c7;
+}
+
+/* Post Styling */
+.post {
+    margin-bottom: 30px;
+}
+
+.post-author {
+    font-weight: bold;
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.post-content {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #dcdcdc;
+    border-radius: 4px;
+    color: #333;
+    background-color: #f9f9f9;
+}
+
+/* Add Comment Section Styling */
+.add-comment-section {
+    margin-top: 20px;
+}
+
+.add-comment-section label {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+}
+
+#comment-box {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #dcdcdc;
+    border-radius: 4px;
+    background-color: #f0f2f5;
+    color: #333;
+    resize: none;
+}
+
+.comment-button {
+    margin-top: 10px;
+    padding: 10px 16px;
+    background-color: #3478f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.comment-button:hover {
+    background-color: #2968c7;
+}

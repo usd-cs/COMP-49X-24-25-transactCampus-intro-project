@@ -1,0 +1,50 @@
+-- SEQUENCE: public.User_id_seq
+
+-- DROP SEQUENCE IF EXISTS public."User_id_seq";
+
+CREATE SEQUENCE IF NOT EXISTS public."User_id_seq"
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public."User_id_seq"
+    OWNED BY public."User".id;
+
+ALTER SEQUENCE public."User_id_seq"
+    OWNER TO postgres;
+
+-- SEQUENCE: public.Post_id_seq
+
+-- DROP SEQUENCE IF EXISTS public."Post_id_seq";
+
+CREATE SEQUENCE IF NOT EXISTS public."Post_id_seq"
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public."Post_id_seq"
+    OWNED BY public."Post".id;
+
+ALTER SEQUENCE public."Post_id_seq"
+    OWNER TO postgres;
+
+-- SEQUENCE: public.Comment_id_seq
+
+-- DROP SEQUENCE IF EXISTS public."Comment_id_seq";
+
+CREATE SEQUENCE IF NOT EXISTS public."Comment_id_seq"
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public."Comment_id_seq"
+    OWNED BY public."Comment".id;
+
+ALTER SEQUENCE public."Comment_id_seq"
+    OWNER TO postgres;

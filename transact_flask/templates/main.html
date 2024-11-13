@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body>
+    <!-- Sidebar with University Logo -->
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='USDLogo.png') }}" alt="University Logo" class="logo">
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content">
+        <!-- Navbar with Logout Button -->
+        <div class="navbar">
+            <button onclick="window.location.href='{{ url_for('login') }}'" class="logout-button">Log Out</button>
+        </div>
+
+        <!-- Create Post Area -->
+        <div class="create-post-section">
+            <label for="post-textarea">Create a Post:</label>
+            <textarea id="post-textarea" placeholder="Write your post here..."></textarea>
+            <button class="post-button">Post</button>
+        </div>
+
+        <!-- Posts Section -->
+        <div class="posts">
+            <!-- Sample Post 1 -->
+            <div class="post">
+                <p class="post-author">Mathisha Karunaratne</p>
+                <input type="text" class="post-content" value="I love the Intro Project!" readonly>
+                <div class="post-actions">
+                    <button class="delete-post-button">Delete Post</button>
+                    <button class="add-comment-button">Add Comment</button>
+                </div>
+                <div class="comments">
+                    <div class="comment">
+                        <p class="comment-author">Kent Morris</p>
+                        <input type="text" class="comment-content" value="Same, it's so good. Can't wait to work on our final project!!" readonly>
+                        <button class="delete-comment-button">Delete Comment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Post 2 -->
+            <div class="post">
+                <p class="post-author">Jonathan Rivera</p>
+                <input type="text" class="post-content" value="In the quiet town of Maplewood..." readonly>
+                <div class="post-actions">
+                    <button class="delete-post-button">Delete Post</button>
+                    <button class="add-comment-button">Add Comment</button>
+                </div>
+                <!-- Empty comments section for future comments -->
+                <div class="comments"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

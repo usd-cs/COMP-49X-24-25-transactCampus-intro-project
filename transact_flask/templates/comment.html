@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='comment.css') }}">
+</head>
+<body>
+    <!-- Sidebar with University Logo -->
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='USDLogo.png') }}" alt="University Logo" class="logo">
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content">
+        <!-- Navbar with Home Button -->
+        <div class="navbar">
+            <button onclick="window.location.href='{{ url_for('login') }}'" class="home-button">Home</button>
+        </div>
+
+        <!-- Post Area -->
+        <div class="post">
+            <p class="post-author">Mathisha Karunaratne</p>
+            <input type="text" class="post-content" value="I love the Intro Project!" readonly>
+        </div>
+
+        <!-- Add Comment Area -->
+        <div class="add-comment-section">
+            <label for="comment-box">Add a Comment:</label>
+            <textarea id="comment-box" placeholder="Write your comment here..."></textarea>
+            <button class="comment-button">Add Comment</button>
+        </div>
+    </div>
+</body>
+</html>
