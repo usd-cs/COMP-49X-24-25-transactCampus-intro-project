@@ -1,5 +1,5 @@
 import pytest
-from transact_flask import create_app 
+from transact_flask.app import create_app 
 
 
 @pytest.fixture
@@ -12,7 +12,9 @@ def app():
     yield app
 
 
-
+@pytest.fixture
+def client(app):
+    return app.test_client()
 
 
 
