@@ -1,36 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
+
 <body>
     <div class="container">
         <div class="home-button">
-            <button onclick="window.location.href='{{ url_for('main') }}'">Home</button>
+            <button onclick="window.location.href='{{ url_for('public_posts') }}'">Home</button>
         </div>
         <div class="login-box">
             <img src="{{ url_for('static', filename='USDLogo.png') }}" alt="University Logo" class="logo">
             <h2>Log in to your account</h2>
             <p>Welcome back! Please enter your details.</p>
-            
+
             <form>
                 <label for="email">Email</label>
                 <input type="email" id="email" placeholder="Enter your email" required>
-                
+
                 <label for="password">Password</label>
                 <div class="password-container">
                     <input type="password" id="password" placeholder="Password" required>
                     <span class="password-toggle">👁️</span>
                 </div>
-                
-                <button type="submit" class="sign-in-btn">Sign in</button>
+
+                <button type="submit" class="sign-in-btn">Log in</button>
             </form>
-            
-            <p class="signup-text">Don’t have an account? <a href="#">Sign up</a></p>
+
+
         </div>
     </div>
 </body>
+
 </html>

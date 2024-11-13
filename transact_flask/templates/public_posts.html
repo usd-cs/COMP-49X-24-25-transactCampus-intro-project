@@ -21,15 +21,6 @@
             <button onclick="window.location.href='{{ url_for('login') }}'" class="logout-button">Log Out</button>
         </div>
 
-        <!-- Create Post Area -->
-        <div class="create-post-section">
-            <form action="{{ url_for('add_post') }}" method="POST">
-                <label for="post-textarea">Create a Post:</label>
-                <textarea id="post-textarea" name="content" placeholder="Write your post here..."></textarea>
-                <button type="submit" class="post-button">Post</button>
-            </form>
-        </div>
-
         <!-- Posts Section -->
         <div class="posts">
             {% for post in posts %}
