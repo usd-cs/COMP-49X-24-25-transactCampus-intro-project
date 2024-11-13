@@ -1,10 +1,10 @@
 import pytest
-from transact_flask import app 
+from transact_flask import create_app 
 
 
 @pytest.fixture
 def app():
-    app = app()
+    app = create_app()
     app.config.update({
         "TESTING": True,
         # Add any other configuration needed for integration tests
@@ -12,9 +12,7 @@ def app():
     yield app
 
 
-@pytest.fixture
-def client(app, db_connection):
-    return app.test_client()
+
 
 
 
