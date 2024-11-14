@@ -54,7 +54,7 @@ def create_app(test_config=None):
 
     cur.execute(
         """INSERT INTO "Post" (contents, user_id, created_at) VALUES \
-        ('Anyone finish their project already?', %s, '2024-11-14 23:59:59') RETURNING id;""",
+        ('Anyone finish their project already?', %s, '2024-11-12 23:59:59') RETURNING id;""",
         (humpfre_id,),
     )
     post2_id = cur.fetchone()[0]
@@ -107,6 +107,7 @@ def create_app(test_config=None):
                 FROM "Comment" c
                 JOIN "User" u ON c.user_id = u.id
                 WHERE c.post_id = %s
+                ORDER BY c.created_at DESC;
             """,
                 (post_id,),
             )
@@ -130,7 +131,8 @@ def create_app(test_config=None):
     def add_post():
         # Code to handle the new post
         content = request.form.get("content")
-        user_id = 1  # Replace with actual user ID if applicable
+        if "user_id" in session:
+            user_id = session["user_id"]
 
         # Connect to the database and insert the new post
         conn = get_db_connection()

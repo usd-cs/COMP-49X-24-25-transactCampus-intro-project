@@ -18,7 +18,8 @@
     <div class="content">
         <!-- Navbar with Logout Button -->
         <div class="navbar">
-            <button onclick="window.location.href='{{ url_for('login') }}'" class="logout-button">Log Out</button>
+            <button onclick="window.location.href='{{ url_for('public_posts') }}'" class="logout-button">Log
+                Out</button>
         </div>
 
         <!-- Create Post Area -->
@@ -38,7 +39,7 @@
                 <input type="text" class="post-content" value="{{ post.content }}" readonly>
                 <small class="post-date">{{ post.created_at }}</small>
                 <div class="post-actions">
-                    <button class="delete-post-button">Delete Post</button>
+
                     <button class="add-comment-button">Add Comment</button>
                 </div>
                 <div class="comments">
@@ -46,7 +47,7 @@
                     <div class="comment">
                         <p class="comment-author">{{ comment.user_name }}</p>
                         <input type="text" class="comment-content" value="{{ comment.content }}" readonly>
-                        <button class="delete-comment-button">Delete Comment</button>
+
                     </div>
                     {% endfor %}
                 </div>
