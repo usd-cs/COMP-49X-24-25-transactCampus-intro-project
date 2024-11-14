@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comment Page</title>
+    <title>Add Comment</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='comment.css') }}">
 </head>
+
 <body>
     <!-- Sidebar with University Logo -->
     <div class="sidebar">
@@ -14,23 +16,21 @@
 
     <!-- Main Content Area -->
     <div class="content">
-        <!-- Navbar with Home Button -->
+        <!-- Navbar with a Back Button -->
         <div class="navbar">
-            <button onclick="window.location.href='{{ url_for('login') }}'" class="home-button">Home</button>
+            <button onclick="window.location.href='{{ url_for(return_to) }}'" class="home-button">Back</button>
         </div>
 
-        <!-- Post Area -->
-        <div class="post">
-            <p class="post-author">Mathisha Karunaratne</p>
-            <input type="text" class="post-content" value="I love the Intro Project!" readonly>
-        </div>
-
-        <!-- Add Comment Area -->
+        <!-- Add Comment Section -->
         <div class="add-comment-section">
-            <label for="comment-box">Add a Comment:</label>
-            <textarea id="comment-box" placeholder="Write your comment here..."></textarea>
-            <button class="comment-button">Add Comment</button>
+            <h1>Add a Comment</h1>
+            <form action="{{ url_for('add_comment') }}" method="POST">
+                <input type="hidden" name="post_id" value="{{ post_id }}">
+                <textarea id="comment-box" name="content" placeholder="Write your comment here..." required></textarea>
+                <button type="submit" class="comment-button">Submit Comment</button>
+            </form>
         </div>
     </div>
 </body>
+
 </html>
