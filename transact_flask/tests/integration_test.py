@@ -1,5 +1,5 @@
 import pytest
-from app import create_app 
+from transact_flask import app
 
 
 @pytest.fixture
