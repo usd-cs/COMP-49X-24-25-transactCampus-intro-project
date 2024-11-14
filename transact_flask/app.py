@@ -10,13 +10,7 @@ def create_app(test_config=None):
     app.secret_key = "transact"
 
     # Connect to the PostgreSQL database
-    conn = psycopg2.connect(
-        database="intro_project",
-        user="postgres",
-        password="!Peewee38!",
-        host="localhost",
-        port="5645",
-    )
+    conn = psycopg2.connect()
     cur = conn.cursor()
 
     # Reset tables when restarting app
@@ -27,12 +21,12 @@ def create_app(test_config=None):
     cur.execute('''DELETE FROM "User"''')
 
     # Insert data into the User table and fetch user_ids
-    
+
     password = encrypt_password("007")
     cur.execute(
         """INSERT INTO "User" (email, name, admin, password) VALUES \
         ('Jimmy@sandiego.edu', 'Jimmy', TRUE, %s) RETURNING id;""",
-        (password,)
+        (password,),
     )
     jimmy_id = cur.fetchone()[0]
 
@@ -40,7 +34,7 @@ def create_app(test_config=None):
     cur.execute(
         """INSERT INTO "User" (email, name, admin, password) VALUES \
         ('Humpfre@sandiego.edu', 'Humpfre', FALSE, %s) RETURNING id;""",
-        (password,)
+        (password,),
     )
     humpfre_id = cur.fetchone()[0]
 
@@ -48,7 +42,7 @@ def create_app(test_config=None):
     cur.execute(
         """INSERT INTO "User" (email, name, admin, password) VALUES \
         ('Diego@sandiego.edu', 'Diego', FALSE, %s) RETURNING id;""",
-        (password,)
+        (password,),
     )
     diego_id = cur.fetchone()[0]
 
@@ -134,8 +128,7 @@ def create_app(test_config=None):
         cur.close()
         conn.close()
         return render_template("home.html", posts=post_data)
-    
-    
+
     @app.route("/admin")
     def admin():
         conn = get_db_connection()
@@ -200,7 +193,7 @@ def create_app(test_config=None):
         conn.close()
 
         # Redirect to the home page to display the new post
-        
+
         if [session["admin"]]:
             return redirect(url_for("admin"))
         else:
@@ -256,8 +249,7 @@ def create_app(test_config=None):
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
-        
-        # Reset global session values 
+        # Reset global session values
         if request.method == "POST":
             session.pop("user_id", None)
             session.pop("email", None)
@@ -269,7 +261,7 @@ def create_app(test_config=None):
             email = request.form["email"]
             password = request.form["password"]
 
-            #Open the database
+            # Open the database
             conn = psycopg2.connect(
                 database="intro_project",
                 user="postgres",
@@ -278,7 +270,7 @@ def create_app(test_config=None):
                 port="5645",
             )
             cur = conn.cursor()
-            
+
             # Query the data base for matching password and email
             cur.execute(
                 'SELECT id, email, name, admin, password FROM "User" WHERE email = %s AND password = %s',
@@ -294,12 +286,12 @@ def create_app(test_config=None):
                 session["name"] = user[2]
                 session["admin"] = user[3]
                 session["password"] = user[4]
-                
+
                 print(session["admin"])
-                
+
                 if session["admin"]:
                     return redirect(url_for("admin"))
-                
+
                 # redirect them to logged in home page
                 else:
                     return redirect(url_for("home"))
@@ -316,19 +308,15 @@ def create_app(test_config=None):
 
 
 def get_db_connection():
-    conn = psycopg2.connect(
-        database="intro_project",
-        user="postgres",
-        password="!Peewee38!",
-        host="localhost",
-        port="5645",
-    )
+    conn = psycopg2.connect()
     return conn
+
 
 def encrypt_password(password: str) -> str:
     # Encrypt password (encode it in base64)
     encoded = base64.urlsafe_b64encode(password.encode()).decode()
     return encoded
+
 
 # Only run the app if this file is executed directly
 if __name__ == "__main__":
