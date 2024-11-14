@@ -4,7 +4,7 @@ from transact_flask.app import create_app
 
 @pytest.fixture
 def app():
-    app = app.create_app()
+    app = create_app()
     app.config.update({
         "TESTING": True,
         # Add any other configuration needed for integration tests
