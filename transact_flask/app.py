@@ -5,7 +5,7 @@ def create_app(test_config=None):
     app = Flask(__name__)
 
     # Connect to the PostgreSQL database
-    conn = psycopg2.connect(database="intro_project_2", user="postgres", password="transact", host="localhost", port="5432")
+    conn = psycopg2.connect()
     cur = conn.cursor()
 
     # Reset tables when restarting app
