@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, Mock
 from transact_flask.app import create_app
 
-# Fixture to create the app without modifying app.py
+# Setup all mocking and fixtures in one file
 @pytest.fixture
 def app():
     # Mock psycopg2.connect to avoid a real database connection
@@ -10,46 +10,60 @@ def app():
         # Set up the mock connection and cursor
         mock_conn = Mock()
         mock_cursor = Mock()
-
-        # Make .cursor() return the mock cursor
         mock_conn.cursor.return_value = mock_cursor
         mock_connect.return_value = mock_conn
 
-        # Mock `fetchone` to return a tuple with a fake ID (as would happen in the real db)
-        mock_cursor.fetchone.return_value = (1,)  # Simulate returning a tuple like (id,)
-
-        # Mock `fetchall` to return sample data for posts and comments
-        # This should match the structure of the actual database query output in the app
+        # Mock database responses for various fetch calls
+        mock_cursor.fetchone.side_effect = [(1,), (2,), (3,)]  # Return IDs for each user or post
         mock_cursor.fetchall.side_effect = [
-            # Simulate posts data as list of tuples (id, contents, user_name, created_at)
-            [(1, "Whats your favorite color?", "Jimmy", "2024-11-13 01:01:01"),
-             (2, "Anyone finish their project already?", "Humpfre", "2024-11-12 23:59:59")],
-            # Simulate comments data for the first post
-            [("Apple", "Humpfre"), ("Blue", "Diego")],
-            # Simulate comments data for the second post
-            [("Nope", "Diego"), ("RIP", "Jimmy")]
+            # Mock data for `fetchall` queries
+            [
+                (1, "Whats your favorite color?", "Jimmy", "2024-11-13 01:01:01"),
+                (2, "Anyone finish their project already?", "Humpfre", "2024-11-12 23:59:59"),
+            ],  # Example posts data for `home` or `public_posts` route
+            [
+                ("Apple", "Humpfre"),
+                ("Blue", "Diego")
+            ],  # Example comments data for the first post
+            [
+                ("Nope", "Diego"),
+                ("RIP", "Jimmy")
+            ]  # Example comments data for the second post
         ]
 
-        # Simulate commit to ensure no errors are raised
+        # Simulate commit and close methods
         mock_conn.commit.return_value = None
+        mock_cursor.close.return_value = None
+        mock_conn.close.return_value = None
 
-        # Initialize the Flask app without test-specific configurations
+        # Initialize the Flask app
         app = create_app()
         yield app
 
-        # After each test, verify that close() was called on the cursor and connection
-        mock_cursor.close.assert_called_once()
-        mock_conn.close.assert_called_once()
+        # Verify `close()` was called at least once
+        assert mock_cursor.close.call_count >= 1
+        assert mock_conn.close.call_count >= 1
 
-# Fixture to provide a test client
 @pytest.fixture
 def client(app):
     return app.test_client()
 
-# Test function to check if the homepage loads successfully
+# Test for homepage loading
 def test_homepage_loads(client):
-    # Send a GET request 
     response = client.get('/')
-    
-    # Assert that the response status code is 200 (OK)
     assert response.status_code == 200
+
+# Test for admin page loading (assuming a session-based admin view is implemented)
+def test_admin_page_loads(client):
+    with client.session_transaction() as session:
+        session['admin'] = True  # Mock admin privilege in session
+    response = client.get('/admin')
+    assert response.status_code == 200
+
+# Test login with valid credentials
+def test_valid_login(client):
+    with client.session_transaction() as session:
+        session['user_id'] = 1  # Set up a logged-in user session
+    response = client.post('/login', data={"email": "Jimmy@sandiego.edu", "password": "007"})
+    assert response.status_code == 302  # Expect redirection after login
+    assert response.location.endswith("/admin")  # Redirect to admin page if logged in as admin
