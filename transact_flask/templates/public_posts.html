@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+</head>
+
+<body>
+    <!-- Sidebar with University Logo -->
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='USDLogo.png') }}" alt="University Logo" class="logo">
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content">
+        <!-- Navbar with Logout Button -->
+        <div class="navbar">
+            <button onclick="window.location.href='{{ url_for('login') }}'" class="logout-button">Log In</button>
+        </div>
+
+        <!-- Posts Section -->
+        <div class="posts">
+            {% for post in posts %}
+            <div class="post">
+                <p class="post-author">{{ post.user_name }}</p>
+                <input type="text" class="post-content" value="{{ post.content }}" readonly>
+                <small class="post-date">{{ post.created_at }}</small>
+                <div class="post-actions">
+                </div>
+                <div class="comments">
+                    {% for comment in post.comments %}
+                    <div class="comment">
+                        <p class="comment-author">{{ comment.user_name }}</p>
+                        <input type="text" class="comment-content" value="{{ comment.content }}" readonly>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>

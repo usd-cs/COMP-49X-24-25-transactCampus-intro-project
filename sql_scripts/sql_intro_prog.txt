@@ -1,0 +1,32 @@
+DROP TABLE IF EXISTS public."User";
+DROP TABLE IF EXISTS public."Post";
+DROP TABLE IF EXISTS public."Comment";
+
+CREATE TABLE public."User" (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR,
+    name VARCHAR,
+    admin BOOLEAN,
+    password VARCHAR
+);
+
+CREATE TABLE public."Post" (
+    id SERIAL PRIMARY KEY,
+    contents TEXT,
+    user_id INTEGER,
+    created_at TIMESTAMP,
+    CONSTRAINT user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public."User" (id) ON DELETE NO ACTION
+);
+
+CREATE TABLE public."Comment" (
+    id SERIAL PRIMARY KEY,
+    contents TEXT,
+    user_id INTEGER,
+    post_id INTEGER,
+    created_at TIMESTAMP,
+    CONSTRAINT post_id_fk FOREIGN KEY (post_id)
+        REFERENCES public."Post" (id) ON DELETE NO ACTION,
+    CONSTRAINT user_id_fk FOREIGN KEY (user_id)
+        REFERENCES public."User" (id) ON DELETE NO ACTION
+);
