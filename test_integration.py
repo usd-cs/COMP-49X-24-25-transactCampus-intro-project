@@ -36,8 +36,8 @@ def client(app):
 
 # Test function to check if the homepage loads successfully
 def test_homepage_loads(client):
-    # Send a GET request to the `/home` route
-    response = client.get('/home')
+    # Send a GET request to the `/` route
+    response = client.get('/')
     
     # Assert that the response status code is 200 (OK)
     assert response.status_code == 200
