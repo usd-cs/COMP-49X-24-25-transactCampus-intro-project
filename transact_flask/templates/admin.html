@@ -36,7 +36,6 @@
         <div class="post">
             <p class="post-author">{{ post.user_name }}</p>
             <input type="text" class="post-content" value="{{ post.content }}" readonly>
-            <small class="post-date">{{ post.created_at }}</small>
             <div class="post-actions">
                 <!-- Delete Post Button -->
                 <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">

@@ -6,6 +6,7 @@ import base64
 
 def create_app(test_config=None):
     app = Flask(__name__)
+    app.config["DATABASE_URI"] = "postgresql://postgres:8412@localhost/intro_project"
 
     app.secret_key = "transact"
 
@@ -367,7 +368,7 @@ def create_app(test_config=None):
 
     # Configurations or test config can be applied here if needed
     if test_config:
-        app.config.from_mapping(test_config)
+        app.config.update(test_config)
 
     return app
 
@@ -380,6 +381,11 @@ def get_db_connection():
         host="localhost",
         port="5432",
     )
+    return conn
+
+
+def get_mock_db_connection():
+    conn = psycopg2.connect(app.config["DATABASE_URI"])
     return conn
 
 
