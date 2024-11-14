@@ -80,6 +80,27 @@ def create_app(test_config=None):
     @app.route("/login")
     def login():
         return render_template("login.html")
+    
+    @app.route("/delete_post/<int:post_id>", methods=["POST"])
+    def delete_post(post_id):
+        # Check if user is logged in and is an admin
+        if "user_id" not in session or not session.get("admin", False):
+            return redirect(url_for("login"))
+
+        # Connect to the database and delete the post
+        conn = get_db_connection()
+        cur = conn.cursor()
+        # Delete associated comments first to maintain referential integrity
+        cur.execute("""DELETE FROM "Comment" WHERE post_id = %s;""", (post_id,))
+        # Delete the post
+        cur.execute("""DELETE FROM "Post" WHERE id = %s;""", (post_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        # Redirect to the admin page after deletion
+        return redirect(url_for("admin"))
+
 
     # Configurations or test config can be applied here if needed
     if test_config:
