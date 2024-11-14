@@ -265,9 +265,9 @@ def create_app(test_config=None):
             conn = psycopg2.connect(
                 database="intro_project",
                 user="postgres",
-                password="!Peewee38!",
+                password="figmasigmaligma",
                 host="localhost",
-                port="5645",
+                port="5432",
             )
             cur = conn.cursor()
 
