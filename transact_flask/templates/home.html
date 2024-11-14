@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community Page</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
 </head>
 <body>
     <!-- Sidebar with University Logo -->
@@ -16,7 +16,7 @@
     <div class="content">
         <!-- Navbar with Logout Button -->
         <div class="navbar">
-            <button onclick="window.location.href='{{ url_for('login') }}'" class="logout-button">Log Out</button>
+            <button onclick="window.location.href='{{ url_for('login') }}'" class="logout-button" name = 'Login' >Log In</button>
         </div>
 
         <!-- Create Post Area -->
