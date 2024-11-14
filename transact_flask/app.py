@@ -149,7 +149,7 @@ def create_app(test_config=None):
             post_id, content, user_name, created_at = post
             cur.execute(
                 """
-                SELECT c.contents, u.name
+                SELECT c.id, c.contents, u.name
                 FROM "Comment" c
                 JOIN "User" u ON c.user_id = u.id
                 WHERE c.post_id = %s
@@ -158,13 +158,15 @@ def create_app(test_config=None):
                 (post_id,),
             )
             comments = cur.fetchall()
+            
             post_data.append(
                 {
+                    "id": post_id,
                     "content": content,
                     "user_name": user_name,
                     "created_at": created_at,
                     "comments": [
-                        {"content": c[0], "user_name": c[1]} for c in comments
+                        {"id": c[0], "content": c[1], "user_name": c[2]} for c in comments
                     ],
                 }
             )
@@ -173,6 +175,10 @@ def create_app(test_config=None):
         conn.close()
         return render_template("admin.html", posts=post_data)
 
+
+
+
+    
     @app.route("/add_post", methods=["POST"])
     def add_post():
         # Code to handle the new post
@@ -198,6 +204,45 @@ def create_app(test_config=None):
             return redirect(url_for("admin"))
         else:
             return redirect(url_for("home"))
+        
+    @app.route("/delete_post/<int:post_id>", methods=["POST"])
+    def delete_post(post_id):
+        # Ensure that only admins can delete posts
+        if not session.get("admin"):
+            return redirect(url_for("home"))
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Delete all comments related to the post
+        cur.execute("DELETE FROM \"Comment\" WHERE post_id = %s;", (post_id,))
+
+        # Delete the post
+        cur.execute("DELETE FROM \"Post\" WHERE id = %s;", (post_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return redirect(url_for("admin"))
+    
+    @app.route("/delete_comment/<int:comment_id>", methods=["POST"])
+    def delete_comment(comment_id):
+        # Ensure that only admins can delete comments
+        if not session.get("admin"):
+            return redirect(url_for("home"))
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Delete the comment
+        cur.execute("DELETE FROM \"Comment\" WHERE id = %s;", (comment_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return redirect(url_for("admin"))
 
     @app.route("/public")
     def public_posts():
