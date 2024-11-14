@@ -12,7 +12,11 @@ def create_app(test_config=None):
     app.secret_key = "transact"
 
     # Connect to the PostgreSQL database
-    conn = psycopg2.connect()
+    conn = psycopg2.connect( database = "intro_project",
+        user = "postgres",
+        password = "!Peewee38!",
+        host = "localhost",
+        port = "5645")
 
     cur = conn.cursor()
 
@@ -313,7 +317,13 @@ def create_app(test_config=None):
 
 
 def get_db_connection():
-    conn = psycopg2.connect()
+    conn = psycopg2.connect(
+        database = "intro_project",
+        user = "postgres",
+        password = "!Peewee38!",
+        host = "localhost",
+        port = "5645"
+    )
     return conn
 
 
