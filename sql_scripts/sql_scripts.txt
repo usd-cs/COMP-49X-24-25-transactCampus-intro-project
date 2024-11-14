@@ -1,76 +1,37 @@
--- Table: public.User
+-- Create the User table
+CREATE TABLE IF NOT EXISTS public."User" (
+    user_id SERIAL PRIMARY KEY,  -- Primary Key
+    email VARCHAR(255) UNIQUE NOT NULL,  -- Unique constraint for email
+    name VARCHAR(100),
+    admin BOOLEAN,
+    password VARCHAR(255) NOT NULL
+);
 
--- DROP TABLE IF EXISTS public."User";
+-- Create the Post table
+CREATE TABLE IF NOT EXISTS public."Post" (
+    post_id SERIAL PRIMARY KEY,  -- Primary Key
+    contents TEXT,
+    user_id INT NOT NULL,  -- Foreign Key referencing User table
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Automatically stores the timestamp when row is created
+    CONSTRAINT fk_user
+        FOREIGN KEY(user_id) 
+            REFERENCES public."User"(user_id)
+            ON DELETE CASCADE
+);
 
-CREATE TABLE IF NOT EXISTS public."User"
-(
-    id integer NOT NULL DEFAULT nextval('"User_id_seq"'::regclass),
-    email character varying COLLATE pg_catalog."default",
-    name character varying COLLATE pg_catalog."default",
-    admin boolean,
-    password character varying COLLATE pg_catalog."default",
-    CONSTRAINT "User_pkey" PRIMARY KEY (id)
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public."User"
-    OWNER to postgres;
-
-GRANT ALL ON TABLE public."User" TO postgres;
-
--- Table: public.Post
-
--- DROP TABLE IF EXISTS public."Post";
-
-CREATE TABLE IF NOT EXISTS public."Post"
-(
-    id integer NOT NULL DEFAULT nextval('"Post_id_seq"'::regclass),
-    contents text COLLATE pg_catalog."default",
-    user_id integer,
-    created_at timestamp without time zone,
-    CONSTRAINT "Post_pkey" PRIMARY KEY (id),
-    CONSTRAINT user_id_fkey FOREIGN KEY (user_id)
-        REFERENCES public."User" (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public."Post"
-    OWNER to postgres;
-
-GRANT ALL ON TABLE public."Post" TO postgres;
-
--- Table: public.Comment
-
--- DROP TABLE IF EXISTS public."Comment";
-
-CREATE TABLE IF NOT EXISTS public."Comment"
-(
-    id integer NOT NULL DEFAULT nextval('"Comment_id_seq"'::regclass),
-    contents text COLLATE pg_catalog."default",
-    user_id integer,
-    post_id integer,
-    created_at timestamp without time zone,
-    CONSTRAINT "Comment_pkey" PRIMARY KEY (id),
-    CONSTRAINT post_id_fk FOREIGN KEY (post_id)
-        REFERENCES public."Post" (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID,
-    CONSTRAINT user_id_fk FOREIGN KEY (user_id)
-        REFERENCES public."User" (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public."Comment"
-    OWNER to postgres;
-
-GRANT ALL ON TABLE public."Comment" TO postgres;
+-- Create the Comment table
+CREATE TABLE IF NOT EXISTS public."Comment" (
+    comment_id SERIAL PRIMARY KEY,  -- Primary Key
+    contents TEXT,
+    user_id INT NOT NULL,  -- Foreign Key referencing User table
+    post_id INT NOT NULL,  -- Foreign Key referencing Post table
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Automatically stores the timestamp when row is created
+    CONSTRAINT fk_user_comment
+        FOREIGN KEY(user_id) 
+            REFERENCES public."User"(user_id)
+            ON DELETE CASCADE,
+    CONSTRAINT fk_post
+        FOREIGN KEY(post_id) 
+            REFERENCES public."Post"(post_id)
+            ON DELETE CASCADE
+);

@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+
+from flask import Flask, g, redirect, render_template, request, session, url_for
+
 import psycopg2
 from datetime import datetime
 import base64
@@ -11,7 +13,9 @@ def create_app(test_config=None):
     app.secret_key = "transact"
 
     # Connect to the PostgreSQL database
+
     conn = get_db_connection()
+
     cur = conn.cursor()
 
     # Reset tables when restarting app
@@ -287,6 +291,7 @@ def create_app(test_config=None):
         conn.close()
         return render_template("public_posts.html", posts=post_data)
 
+
     @app.route("/comment/<int:post_id>")
     def comment(post_id):
         # Pass the post_id to the template for form submission
@@ -318,6 +323,7 @@ def create_app(test_config=None):
 
         # Redirect back to the home page or the admin page, depending on user role
         return redirect(url_for("admin") if session.get("admin") else url_for("home"))
+
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -364,6 +370,7 @@ def create_app(test_config=None):
 
             return redirect(url_for("login"))
 
+
         return render_template("login.html")
 
     # Configurations or test config can be applied here if needed
@@ -374,13 +381,7 @@ def create_app(test_config=None):
 
 
 def get_db_connection():
-    conn = psycopg2.connect(
-        database="intro_project",
-        user="postgres",
-        password="8412",
-        host="localhost",
-        port="5432",
-    )
+    conn = psycopg2.connect()
     return conn
 
 
