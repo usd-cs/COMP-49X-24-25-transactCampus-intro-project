@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import psycopg2
 from datetime import datetime
+import base64
 
 
 def create_app(test_config=None):
@@ -26,21 +27,28 @@ def create_app(test_config=None):
     cur.execute('''DELETE FROM "User"''')
 
     # Insert data into the User table and fetch user_ids
+    
+    password = encrypt_password("007")
     cur.execute(
         """INSERT INTO "User" (email, name, admin, password) VALUES \
-        ('Jimmy@sandiego.edu', 'Jimmy', TRUE, '1234') RETURNING id;"""
+        ('Jimmy@sandiego.edu', 'Jimmy', TRUE, %s) RETURNING id;""",
+        (password,)
     )
     jimmy_id = cur.fetchone()[0]
 
+    password = encrypt_password("hello")
     cur.execute(
         """INSERT INTO "User" (email, name, admin, password) VALUES \
-        ('Humpfre@sandiego.edu', 'Humpfre', FALSE, '1234') RETURNING id;"""
+        ('Humpfre@sandiego.edu', 'Humpfre', FALSE, %s) RETURNING id;""",
+        (password,)
     )
     humpfre_id = cur.fetchone()[0]
 
+    password = encrypt_password("transact")
     cur.execute(
         """INSERT INTO "User" (email, name, admin, password) VALUES \
-        ('Diego@sandiego.edu', 'Diego', FALSE, '1234') RETURNING id;"""
+        ('Diego@sandiego.edu', 'Diego', FALSE, %s) RETURNING id;""",
+        (password,)
     )
     diego_id = cur.fetchone()[0]
 
@@ -274,7 +282,7 @@ def create_app(test_config=None):
             # Query the data base for matching password and email
             cur.execute(
                 'SELECT id, email, name, admin, password FROM "User" WHERE email = %s AND password = %s',
-                (email, password),
+                (email, encrypt_password(password)),
             )
             user = cur.fetchone()
             conn.close()
@@ -291,7 +299,8 @@ def create_app(test_config=None):
                 
                 if session["admin"]:
                     return redirect(url_for("admin"))
-                # redirect them to loggd in home page
+                
+                # redirect them to logged in home page
                 else:
                     return redirect(url_for("home"))
 
@@ -316,6 +325,10 @@ def get_db_connection():
     )
     return conn
 
+def encrypt_password(password: str) -> str:
+    # Encrypt password (encode it in base64)
+    encoded = base64.urlsafe_b64encode(password.encode()).decode()
+    return encoded
 
 # Only run the app if this file is executed directly
 if __name__ == "__main__":
