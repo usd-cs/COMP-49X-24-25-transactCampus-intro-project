@@ -18,6 +18,18 @@ def app():
         # Mock `fetchone` to return a tuple with a fake ID (as would happen in the real db)
         mock_cursor.fetchone.return_value = (1,)  # Simulate returning a tuple like (id,)
 
+        # Mock `fetchall` to return sample data for posts and comments
+        # This should match the structure of the actual database query output in the app
+        mock_cursor.fetchall.side_effect = [
+            # Simulate posts data as list of tuples (id, contents, user_name, created_at)
+            [(1, "Whats your favorite color?", "Jimmy", "2024-11-13 01:01:01"),
+             (2, "Anyone finish their project already?", "Humpfre", "2024-11-12 23:59:59")],
+            # Simulate comments data for the first post
+            [("Apple", "Humpfre"), ("Blue", "Diego")],
+            # Simulate comments data for the second post
+            [("Nope", "Diego"), ("RIP", "Jimmy")]
+        ]
+
         # Simulate commit to ensure no errors are raised
         mock_conn.commit.return_value = None
 
