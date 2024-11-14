@@ -10,11 +10,14 @@ def app():
         # Set up the mock connection and cursor
         mock_conn = Mock()
         mock_cursor = Mock()
-        
+
         # Make .cursor() return the mock cursor
         mock_conn.cursor.return_value = mock_cursor
         mock_connect.return_value = mock_conn
-        
+
+        # Mock `fetchone` to return a tuple with a fake ID (as would happen in the real db)
+        mock_cursor.fetchone.return_value = (1,)  # Simulate returning a tuple like (id,)
+
         # Simulate commit to ensure no errors are raised
         mock_conn.commit.return_value = None
 
