@@ -11,26 +11,12 @@
 <body>
     <div class="container">
         <div class="home-button">
-<<<<<<< HEAD
-            <button onclick="window.location.href='{{ url_for('home_screen') }}'" >Home</button>
-=======
             <button onclick="window.location.href='{{ url_for('public_posts') }}'">Home</button>
->>>>>>> main
         </div>
         <div class="login-box">
             <img src="{{ url_for('static', filename='USDLogo.png') }}" alt="University Logo" class="logo">
             <h2>Log in to your account</h2>
             <p>Welcome back! Please enter your details.</p>
-<<<<<<< HEAD
-            
-            <form method="POST">
-                <label for="email">Email</label>
-                <input type="email" id="email" name = "email" placeholder="Enter your email" required>
-                
-                <label for="password">Password</label>
-                <div class="password-container">
-                    <input type="password" id="password" name = "password" placeholder="Password" required>
-=======
 
             <form method="POST">
                 <label for="email">Email</label>
@@ -39,18 +25,12 @@
                 <label for="password">Password</label>
                 <div class="password-container">
                     <input type="password" id="password" name="password" placeholder="Password" required>
->>>>>>> main
+
                     <span class="password-toggle">👁️</span>
                 </div>
 
                 <button type="submit" class="sign-in-btn">Log in</button>
             </form>
-<<<<<<< HEAD
-            
-=======
-
-
->>>>>>> main
         </div>
     </div>
 </body>

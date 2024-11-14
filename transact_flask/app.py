@@ -381,13 +381,7 @@ def create_app(test_config=None):
 
 
 def get_db_connection():
-    conn = psycopg2.connect(
-        database="intro_project",
-        user="postgres",
-        password="8412",
-        host="localhost",
-        port="5432",
-    )
+    conn = psycopg2.connect()
     return conn
 
 
