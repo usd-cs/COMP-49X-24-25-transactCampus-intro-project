@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+</head>
+
+<body>
+    <!-- Sidebar with University Logo -->
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='USDLogo.png') }}" alt="University Logo" class="logo">
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content">
+        <!-- Navbar with Logout Button -->
+        <div class="navbar">
+            <button onclick="window.location.href='{{ url_for('public_posts') }}'" class="logout-button">Log
+                Out</button>
+        </div>
+
+        <!-- Create Post Area -->
+        <div class="create-post-section">
+            <form action="{{ url_for('add_post') }}" method="POST">
+                <label for="post-textarea">Create a Post:</label>
+                <textarea id="post-textarea" name="content" placeholder="Write your post here..."></textarea>
+                <button type="submit" class="post-button">Post</button>
+            </form>
+        </div>
+
+        <!-- Posts Section -->
+        <div class="posts">
+            {% for post in posts %}
+            <div class="post">
+                <p class="post-author">{{ post.user_name }}</p>
+                <input type="text" class="post-content" value="{{ post.content }}" readonly>
+                <small class="post-date">{{ post.created_at }}</small>
+                <div class="post-actions">
+                    <button class="delete-post-button">Delete Post</button>
+                    <button class="add-comment-button">Add Comment</button>
+                </div>
+                <div class="comments">
+                    {% for comment in post.comments %}
+                    <div class="comment">
+                        <p class="comment-author">{{ comment.user_name }}</p>
+                        <input type="text" class="comment-content" value="{{ comment.content }}" readonly>
+                        <button class="delete-comment-button">Delete Comment</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>
