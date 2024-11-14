@@ -10,7 +10,7 @@ def create_app(test_config=None):
     app.secret_key = "transact"
 
     # Connect to the PostgreSQL database
-    conn = psycopg2.connect()
+    conn = get_db_connection()
     cur = conn.cursor()
 
     # Reset tables when restarting app
@@ -194,7 +194,7 @@ def create_app(test_config=None):
 
         # Redirect to the home page to display the new post
 
-        if [session["admin"]]:
+        if session["admin"]:
             return redirect(url_for("admin"))
         else:
             return redirect(url_for("home"))
@@ -262,13 +262,7 @@ def create_app(test_config=None):
             password = request.form["password"]
 
             # Open the database
-            conn = psycopg2.connect(
-                database="intro_project",
-                user="postgres",
-                password="!Peewee38!",
-                host="localhost",
-                port="5645",
-            )
+            conn = get_db_connection()
             cur = conn.cursor()
 
             # Query the data base for matching password and email
@@ -308,7 +302,7 @@ def create_app(test_config=None):
 
 
 def get_db_connection():
-    conn = psycopg2.connect()
+    conn =  psycopg2.connect(database = "intro_project", user = "postgres", password = "!Peewee38!", host = "localhost", port = "5645")
     return conn
 
 
