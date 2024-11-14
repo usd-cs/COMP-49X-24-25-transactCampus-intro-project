@@ -18,17 +18,12 @@
     <div class="content">
         <!-- Navbar with Logout Button -->
         <div class="navbar">
-<<<<<<< HEAD
 <<<<<<<< HEAD:transact_flask/templates/home.html
             <button onclick="window.location.href='{{ url_for('login') }}'" class="logout-button" name = 'Login' >Log In</button>
 ========
             <button onclick="window.location.href='{{ url_for('public_posts') }}'" class="logout-button">Log
                 Out</button>
 >>>>>>>> main:transact_flask/templates/admin.html
-=======
-            <button onclick="window.location.href='{{ url_for('public_posts') }}'" class="logout-button">Log
-                Out</button>
->>>>>>> main
         </div>
 
         <!-- Create Post Area -->
@@ -48,11 +43,7 @@
                 <input type="text" class="post-content" value="{{ post.content }}" readonly>
                 <small class="post-date">{{ post.created_at }}</small>
                 <div class="post-actions">
-<<<<<<< HEAD
                     <button class="delete-post-button">Delete Post</button>
-=======
-
->>>>>>> main
                     <button class="add-comment-button">Add Comment</button>
                 </div>
                 <div class="comments">
@@ -60,11 +51,7 @@
                     <div class="comment">
                         <p class="comment-author">{{ comment.user_name }}</p>
                         <input type="text" class="comment-content" value="{{ comment.content }}" readonly>
-<<<<<<< HEAD
                         <button class="delete-comment-button">Delete Comment</button>
-=======
-
->>>>>>> main
                     </div>
                     {% endfor %}
                 </div>
