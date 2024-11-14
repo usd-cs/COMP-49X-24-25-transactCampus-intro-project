@@ -124,7 +124,7 @@ def create_app(test_config=None):
 
         cur.close()
         conn.close()
-        return render_template("main.html", posts=post_data)
+        return render_template("home.html", posts=post_data)
 
     @app.route("/add_post", methods=["POST"])
     def add_post():
@@ -145,7 +145,7 @@ def create_app(test_config=None):
         conn.close()
 
         # Redirect to the home page to display the new post
-        return redirect(url_for("home_screen"))
+        return redirect(url_for("home"))
 
     @app.route("/public")
     def public_posts():
@@ -195,35 +195,44 @@ def create_app(test_config=None):
     def comment():
         return render_template("comment.html")
 
-    @app.route('/login', methods = ['GET', 'POST'])
+    @app.route("/login", methods=["GET", "POST"])
     def login():
-        if request.method == 'POST':
-            session.pop('user_id', None)
-            session.pop('email', None)
-            session.pop('name', None)
-            session.pop('admin', None)
-            session.pop('password', None)
-            
-            email = request.form['email']
-            password = request.form['password']
+        if request.method == "POST":
+            session.pop("user_id", None)
+            session.pop("email", None)
+            session.pop("name", None)
+            session.pop("admin", None)
+            session.pop("password", None)
+
+            email = request.form["email"]
+            password = request.form["password"]
             print(email)
-            
-            conn = psycopg2.connect(database="intro_project", user="postgres", password="!Peewee38!", host="localhost", port="5645")
+
+            conn = psycopg2.connect(
+                database="intro_project",
+                user="postgres",
+                password="8412",
+                host="localhost",
+                port="5432",
+            )
             cur = conn.cursor()
-            cur.execute('SELECT id, email, name, admin, password FROM "User" WHERE email = %s AND password = %s', (email, password))
+            cur.execute(
+                'SELECT id, email, name, admin, password FROM "User" WHERE email = %s AND password = %s',
+                (email, password),
+            )
             user = cur.fetchone()
             conn.close()
-            
+
             if user:
-                session['user_id'] = user[0]
-                session['email'] = user[1]
-                session['name'] = user[2]
-                session['admin'] = user[3]
-                session['password'] = user[4]
-                return redirect(url_for('home_screen'))
-            
-            return redirect(url_for('login'))
-            
+                session["user_id"] = user[0]
+                session["email"] = user[1]
+                session["name"] = user[2]
+                session["admin"] = user[3]
+                session["password"] = user[4]
+                return redirect(url_for("home"))
+
+            return redirect(url_for("login"))
+
         return render_template("login.html")
 
     # Configurations or test config can be applied here if needed
