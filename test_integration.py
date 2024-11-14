@@ -1,28 +1,63 @@
 import pytest
+from unittest.mock import patch, Mock
 from transact_flask.app import create_app
 
-# Set up the Flask app fixture without database dependencies
+# Set up the Flask app fixture with database mocking
 @pytest.fixture
 def app():
-    app = create_app()
-    return app
+    # Mock psycopg2.connect to prevent actual database connections
+    with patch("transact_flask.app.psycopg2.connect") as mock_connect:
+        mock_conn = Mock()
+        mock_cursor = Mock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
 
-# Provide a test client to send requests
+        # Mock database responses
+        mock_cursor.fetchone.side_effect = [(1,), (2,), (3,)]
+        mock_cursor.fetchall.side_effect = [
+            [
+                (1, "Whats your favorite color?", "Jimmy", "2024-11-13 01:01:01"),
+                (2, "Anyone finish their project already?", "Humpfre", "2024-11-12 23:59:59"),
+            ],
+            [
+                ("Apple", "Humpfre"),
+                ("Blue", "Diego")
+            ],
+            [
+                ("Nope", "Diego"),
+                ("RIP", "Jimmy")
+            ]
+        ]
+
+        # Ensure commit and close methods don't raise exceptions
+        mock_conn.commit.return_value = None
+        mock_cursor.close.return_value = None
+        mock_conn.close.return_value = None
+
+        # Initialize and yield the app for testing
+        app = create_app()
+        yield app
+
 @pytest.fixture
 def client(app):
     return app.test_client()
 
-# Test that the app's homepage loads successfully
+# Test for homepage loading
 def test_homepage_loads(client):
     response = client.get('/')
     assert response.status_code == 200
 
-# Test that the app's admin page loads (if it exists), without checking for admin permissions
+# Test for admin page loading
 def test_admin_page_loads(client):
+    with client.session_transaction() as session:
+        session['admin'] = True  # Mock admin session
     response = client.get('/admin')
-    assert response.status_code in [200, 302, 404]  # Check for OK, redirect, or not found
-
-# Test that the login page loads successfully
-def test_login_page_loads(client):
-    response = client.get('/login')
     assert response.status_code == 200
+
+# Test login with valid credentials
+def test_valid_login(client):
+    with client.session_transaction() as session:
+        session['user_id'] = 1  # Mock a logged-in user session
+    response = client.post('/login', data={"email": "Jimmy@sandiego.edu", "password": "007"})
+    assert response.status_code == 302  # Expect redirection
+    assert response.location.endswith("/admin")
