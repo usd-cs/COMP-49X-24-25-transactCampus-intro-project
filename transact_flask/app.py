@@ -8,15 +8,13 @@ import base64
 
 def create_app(test_config=None):
     app = Flask(__name__)
+    app.config["DATABASE_URI"] = "postgresql://postgres:8412@localhost/intro_project"
 
     app.secret_key = "transact"
 
     # Connect to the PostgreSQL database
-    conn = psycopg2.connect( database = "intro_project",
-        user = "postgres",
-        password = "!Peewee38!",
-        host = "localhost",
-        port = "5645")
+
+    conn = get_db_connection()
 
     cur = conn.cursor()
 
@@ -123,6 +121,7 @@ def create_app(test_config=None):
             comments = cur.fetchall()
             post_data.append(
                 {
+                    "id": post_id,
                     "content": content,
                     "user_name": user_name,
                     "created_at": created_at,
@@ -156,7 +155,7 @@ def create_app(test_config=None):
             post_id, content, user_name, created_at = post
             cur.execute(
                 """
-                SELECT c.contents, u.name
+                SELECT c.id, c.contents, u.name
                 FROM "Comment" c
                 JOIN "User" u ON c.user_id = u.id
                 WHERE c.post_id = %s
@@ -165,13 +164,16 @@ def create_app(test_config=None):
                 (post_id,),
             )
             comments = cur.fetchall()
+
             post_data.append(
                 {
+                    "id": post_id,
                     "content": content,
                     "user_name": user_name,
                     "created_at": created_at,
                     "comments": [
-                        {"content": c[0], "user_name": c[1]} for c in comments
+                        {"id": c[0], "content": c[1], "user_name": c[2]}
+                        for c in comments
                     ],
                 }
             )
@@ -201,10 +203,49 @@ def create_app(test_config=None):
 
         # Redirect to the home page to display the new post
 
-        if [session["admin"]]:
+        if session["admin"]:
             return redirect(url_for("admin"))
         else:
             return redirect(url_for("home"))
+
+    @app.route("/delete_post/<int:post_id>", methods=["POST"])
+    def delete_post(post_id):
+        # Ensure that only admins can delete posts
+        if not session.get("admin"):
+            return redirect(url_for("home"))
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Delete all comments related to the post
+        cur.execute('DELETE FROM "Comment" WHERE post_id = %s;', (post_id,))
+
+        # Delete the post
+        cur.execute('DELETE FROM "Post" WHERE id = %s;', (post_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return redirect(url_for("admin"))
+
+    @app.route("/delete_comment/<int:comment_id>", methods=["POST"])
+    def delete_comment(comment_id):
+        # Ensure that only admins can delete comments
+        if not session.get("admin"):
+            return redirect(url_for("home"))
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Delete the comment
+        cur.execute('DELETE FROM "Comment" WHERE id = %s;', (comment_id,))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return redirect(url_for("admin"))
 
     @app.route("/public")
     def public_posts():
@@ -251,9 +292,38 @@ def create_app(test_config=None):
         return render_template("public_posts.html", posts=post_data)
 
 
-    @app.route("/comment")
-    def comment():
-        return render_template("comment.html")
+    @app.route("/comment/<int:post_id>")
+    def comment(post_id):
+        # Pass the post_id to the template for form submission
+        return_to = request.args.get("return_to", "home")
+        return render_template("comment.html", post_id=post_id, return_to=return_to)
+
+    @app.route("/add_comment", methods=["POST"])
+    def add_comment():
+        content = request.form.get("content")
+        post_id = request.form.get("post_id")
+
+        if "user_id" not in session:
+            # Redirect to login if user is not logged in
+            return redirect(url_for("login"))
+
+        user_id = session["user_id"]
+
+        # Insert the comment into the database
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """INSERT INTO "Comment" (contents, user_id, post_id, created_at)
+            VALUES (%s, %s, %s, %s)""",
+            (content, user_id, post_id, datetime.now()),
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        # Redirect back to the home page or the admin page, depending on user role
+        return redirect(url_for("admin") if session.get("admin") else url_for("home"))
+
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -270,13 +340,7 @@ def create_app(test_config=None):
             password = request.form["password"]
 
             # Open the database
-            conn = psycopg2.connect(
-                database="intro_project",
-                user="postgres",
-                password="!Peewee38!",
-                host="localhost",
-                port="5645",
-            )
+            conn = get_db_connection()
             cur = conn.cursor()
 
             # Query the data base for matching password and email
@@ -311,19 +375,24 @@ def create_app(test_config=None):
 
     # Configurations or test config can be applied here if needed
     if test_config:
-        app.config.from_mapping(test_config)
+        app.config.update(test_config)
 
     return app
 
 
 def get_db_connection():
     conn = psycopg2.connect(
-        database = "intro_project",
-        user = "postgres",
-        password = "!Peewee38!",
-        host = "localhost",
-        port = "5645"
+        database="intro_project",
+        user="postgres",
+        password="8412",
+        host="localhost",
+        port="5432",
     )
+    return conn
+
+
+def get_mock_db_connection():
+    conn = psycopg2.connect(app.config["DATABASE_URI"])
     return conn
 
 
