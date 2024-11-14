@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 import psycopg2
 from datetime import datetime
 
 
 def create_app(test_config=None):
     app = Flask(__name__)
+
+    app.secret_key = "transact"
 
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
@@ -193,8 +195,35 @@ def create_app(test_config=None):
     def comment():
         return render_template("comment.html")
 
-    @app.route("/login")
+    @app.route('/login', methods = ['GET', 'POST'])
     def login():
+        if request.method == 'POST':
+            session.pop('user_id', None)
+            session.pop('email', None)
+            session.pop('name', None)
+            session.pop('admin', None)
+            session.pop('password', None)
+            
+            email = request.form['email']
+            password = request.form['password']
+            print(email)
+            
+            conn = psycopg2.connect(database="intro_project", user="postgres", password="!Peewee38!", host="localhost", port="5645")
+            cur = conn.cursor()
+            cur.execute('SELECT id, email, name, admin, password FROM "User" WHERE email = %s AND password = %s', (email, password))
+            user = cur.fetchone()
+            conn.close()
+            
+            if user:
+                session['user_id'] = user[0]
+                session['email'] = user[1]
+                session['name'] = user[2]
+                session['admin'] = user[3]
+                session['password'] = user[4]
+                return redirect(url_for('home_screen'))
+            
+            return redirect(url_for('login'))
+            
         return render_template("login.html")
 
     # Configurations or test config can be applied here if needed
