@@ -12,9 +12,9 @@ def create_app(test_config=None):
     conn = psycopg2.connect(
         database="intro_project",
         user="postgres",
-        password="8412",
+        password="!Peewee38!",
         host="localhost",
-        port="5432",
+        port="5645",
     )
     cur = conn.cursor()
 
@@ -126,6 +126,51 @@ def create_app(test_config=None):
         cur.close()
         conn.close()
         return render_template("home.html", posts=post_data)
+    
+    
+    @app.route("/admin")
+    def admin():
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Fetch posts with user names and any associated comments
+        cur.execute("""
+            SELECT p.id, p.contents, u.name, p.created_at
+            FROM "Post" p
+            JOIN "User" u ON p.user_id = u.id
+            ORDER BY p.created_at DESC;
+        """)
+        posts = cur.fetchall()
+
+        # Organize posts for template
+        post_data = []
+        for post in posts:
+            post_id, content, user_name, created_at = post
+            cur.execute(
+                """
+                SELECT c.contents, u.name
+                FROM "Comment" c
+                JOIN "User" u ON c.user_id = u.id
+                WHERE c.post_id = %s
+                ORDER BY c.created_at DESC;
+            """,
+                (post_id,),
+            )
+            comments = cur.fetchall()
+            post_data.append(
+                {
+                    "content": content,
+                    "user_name": user_name,
+                    "created_at": created_at,
+                    "comments": [
+                        {"content": c[0], "user_name": c[1]} for c in comments
+                    ],
+                }
+            )
+
+        cur.close()
+        conn.close()
+        return render_template("admin.html", posts=post_data)
 
     @app.route("/add_post", methods=["POST"])
     def add_post():
@@ -147,7 +192,11 @@ def create_app(test_config=None):
         conn.close()
 
         # Redirect to the home page to display the new post
-        return redirect(url_for("home"))
+        
+        if [session["admin"]]:
+            return redirect(url_for("admin"))
+        else:
+            return redirect(url_for("home"))
 
     @app.route("/public")
     def public_posts():
@@ -199,6 +248,8 @@ def create_app(test_config=None):
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
+        
+        # Reset global session values 
         if request.method == "POST":
             session.pop("user_id", None)
             session.pop("email", None)
@@ -206,18 +257,21 @@ def create_app(test_config=None):
             session.pop("admin", None)
             session.pop("password", None)
 
+            # Grab input email and password from user
             email = request.form["email"]
             password = request.form["password"]
-            print(email)
 
+            #Open the database
             conn = psycopg2.connect(
                 database="intro_project",
                 user="postgres",
-                password="8412",
+                password="!Peewee38!",
                 host="localhost",
-                port="5432",
+                port="5645",
             )
             cur = conn.cursor()
+            
+            # Query the data base for matching password and email
             cur.execute(
                 'SELECT id, email, name, admin, password FROM "User" WHERE email = %s AND password = %s',
                 (email, password),
@@ -225,13 +279,21 @@ def create_app(test_config=None):
             user = cur.fetchone()
             conn.close()
 
+            # If there is a match set session global variables for the logged in users data
             if user:
                 session["user_id"] = user[0]
                 session["email"] = user[1]
                 session["name"] = user[2]
                 session["admin"] = user[3]
                 session["password"] = user[4]
-                return redirect(url_for("home"))
+                
+                print(session["admin"])
+                
+                if session["admin"]:
+                    return redirect(url_for("admin"))
+                # redirect them to loggd in home page
+                else:
+                    return redirect(url_for("home"))
 
             return redirect(url_for("login"))
 
@@ -248,9 +310,9 @@ def get_db_connection():
     conn = psycopg2.connect(
         database="intro_project",
         user="postgres",
-        password="8412",
+        password="!Peewee38!",
         host="localhost",
-        port="5432",
+        port="5645",
     )
     return conn
 
