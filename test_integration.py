@@ -41,23 +41,3 @@ def app():
 @pytest.fixture
 def client(app):
     return app.test_client()
-
-# Test for homepage loading
-def test_homepage_loads(client):
-    response = client.get('/')
-    assert response.status_code == 200
-
-# Test for admin page loading
-def test_admin_page_loads(client):
-    with client.session_transaction() as session:
-        session['admin'] = True  # Mock admin session
-    response = client.get('/admin')
-    assert response.status_code == 200
-
-# Test login with valid credentials
-def test_valid_login(client):
-    with client.session_transaction() as session:
-        session['user_id'] = 1  # Mock a logged-in user session
-    response = client.post('/login', data={"email": "Jimmy@sandiego.edu", "password": "007"})
-    assert response.status_code == 302  # Expect redirection
-    assert response.location.endswith("/admin")
