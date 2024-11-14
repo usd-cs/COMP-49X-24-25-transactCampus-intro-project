@@ -15,7 +15,7 @@ def client(app):
 
 def test_homepage_loads(client):
     # Send a GET request to the homepage
-    response = client.get('/')
+    response = client.get('/public')
     
     # Assert that the response status code is 200 (OK)
     assert response.status_code == 200
