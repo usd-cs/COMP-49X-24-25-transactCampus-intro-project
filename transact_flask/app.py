@@ -69,7 +69,7 @@ def create_app(test_config=None):
     cur.close()
     conn.close()
 
-    @app.route("/home")
+    @app.route("/")
     def home_screen():
         return render_template("main.html")
 
