@@ -1,387 +1,246 @@
-from flask import Flask, g, redirect, render_template, request, session, url_for, flash
 
+from flask import Flask, g, redirect, render_template, request, session, url_for
+from sqlalchemy import (
+    create_engine, Column, Integer, String, Boolean, Text, ForeignKey, TIMESTAMP
+)
+from bcrypt import hashpw, gensalt
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
 import psycopg2
 from datetime import datetime
 import base64
 
+Base = declarative_base()
+
+# User model
+class User(Base):
+    __tablename__ = "User"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String, nullable=False)
+    name = Column(String, nullable=False)
+    admin = Column(Boolean, default=False)
+    password = Column(String, nullable=False)
+
+    # Relationship to posts and comments
+    posts = relationship("Post", back_populates="user", cascade="all, delete")
+    comments = relationship("Comment", back_populates="user", cascade="all, delete")
+
+# Post model
+class Post(Base):
+    __tablename__ = "Post"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    contents = Column(Text, nullable=False)
+    user_id = Column(Integer, ForeignKey("User.id", ondelete="NO ACTION"), nullable=False)
+    created_at = Column(TIMESTAMP, nullable=False)
+
+    # Relationship to user and comments
+    user = relationship("User", back_populates="posts")
+    comments = relationship("Comment", back_populates="post", cascade="all, delete")
+
+# Comment model
+class Comment(Base):
+    __tablename__ = "Comment"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    contents = Column(Text, nullable=False)
+    user_id = Column(Integer, ForeignKey("User.id", ondelete="NO ACTION"), nullable=False)
+    post_id = Column(Integer, ForeignKey("Post.id", ondelete="NO ACTION"), nullable=False)
+    created_at = Column(TIMESTAMP, nullable=False)
+
+    # Relationships to user and post
+    user = relationship("User", back_populates="comments")
+    post = relationship("Post", back_populates="comments")
 
 def create_app(test_config=None):
     app = Flask(__name__)
-    app.config["DATABASE_URI"] = "postgresql://postgres:8412@localhost/intro_project"
+        
+    
+    DATABASE_URL = "postgresql://postgres:!Peewee38!@localhost:5645/intro_project"
+
+    engine = create_engine(DATABASE_URL)
+    Base.metadata.create_all(engine)  # Creates the tables
+    
+    DB = sessionmaker(bind=engine)
+    db = DB()
+
+        
+        
 
     app.secret_key = "transact"
 
     # Connect to the PostgreSQL database
 
-    conn = get_db_connection()
+        # Encrypt passwords
+    password1 = encrypt_password("007")
+    password2 = encrypt_password("hello")
+    password3 = encrypt_password("transact")
 
-    cur = conn.cursor()
+    # Add users
+    jimmy = User(email="Jimmy@sandiego.edu", name="Jimmy", admin=True, password=password1)
+    humpfre = User(email="Humpfre@sandiego.edu", name="Humpfre", admin=False, password=password2)
+    diego = User(email="Diego@sandiego.edu", name="Diego", admin=False, password=password3)
 
-    # Reset tables when restarting app
-    cur.execute('''DELETE FROM "Comment"''')
+    db.add_all([jimmy, humpfre, diego])
+    db.commit()
 
-    cur.execute('''DELETE FROM "Post"''')
+    # Fetch user IDs
+    jimmy_id = jimmy.id
+    humpfre_id = humpfre.id
+    diego_id = diego.id
 
-    cur.execute('''DELETE FROM "User"''')
+    # Add posts
+    post1 = Post(contents="Whats your favorite color?", user_id=jimmy_id, created_at=datetime(2024, 11, 13, 1, 1, 1))
+    post2 = Post(contents="Anyone finish their project already?", user_id=humpfre_id, created_at=datetime(2024, 11, 12, 23, 59, 59))
 
-    # Insert data into the User table and fetch user_ids
+    db.add_all([post1, post2])
+    db.commit()
 
-    password = encrypt_password("007")
-    cur.execute(
-        """INSERT INTO "User" (email, name, admin, password) VALUES \
-        ('Jimmy@sandiego.edu', 'Jimmy', TRUE, %s) RETURNING id;""",
-        (password,),
-    )
-    jimmy_id = cur.fetchone()[0]
+    # Fetch post IDs
+    post1_id = post1.id
+    post2_id = post2.id
 
-    password = encrypt_password("hello")
-    cur.execute(
-        """INSERT INTO "User" (email, name, admin, password) VALUES \
-        ('Humpfre@sandiego.edu', 'Humpfre', FALSE, %s) RETURNING id;""",
-        (password,),
-    )
-    humpfre_id = cur.fetchone()[0]
+    # Add comments
+    comment1 = Comment(contents="Apple", user_id=humpfre_id, post_id=post1_id, created_at=datetime(2024, 11, 13, 1, 2, 3))
+    comment2 = Comment(contents="Blue", user_id=diego_id, post_id=post1_id, created_at=datetime(2024, 11, 13, 2, 2, 3))
+    comment3 = Comment(contents="Nope", user_id=diego_id, post_id=post2_id, created_at=datetime(2024, 11, 15, 3, 15, 0))
+    comment4 = Comment(contents="RIP", user_id=jimmy_id, post_id=post2_id, created_at=datetime(2024, 11, 15, 9, 30, 40))
 
-    password = encrypt_password("transact")
-    cur.execute(
-        """INSERT INTO "User" (email, name, admin, password) VALUES \
-        ('Diego@sandiego.edu', 'Diego', FALSE, %s) RETURNING id;""",
-        (password,),
-    )
-    diego_id = cur.fetchone()[0]
-
-    password = encrypt_password("salamanca")
-    cur.execute(
-        """INSERT INTO "User" (email, name, admin, password) VALUES \
-        ('Lalo@sandiego.edu', 'Lalo', FALSE, %s) RETURNING id;""",
-        (password,),
-    )
-    lalo_id = cur.fetchone()[0]
-
-    password = encrypt_password("varga")
-    cur.execute(
-        """INSERT INTO "User" (email, name, admin, password) VALUES \
-        ('Nacho@sandiego.edu', 'Nacho', FALSE, %s) RETURNING id;""",
-        (password,),
-    )
-    nacho_id = cur.fetchone()[0]
-
-    # Insert data into the Post table using fetched user_ids and fetch post_ids
-    cur.execute(
-        """INSERT INTO "Post" (contents, user_id, created_at) VALUES \
-        ('Whats your favorite color?', %s, '2024-11-13 01:01:01') RETURNING id;""",
-        (jimmy_id,),
-    )
-    post1_id = cur.fetchone()[0]
-
-    cur.execute(
-        """INSERT INTO "Post" (contents, user_id, created_at) VALUES \
-        ('Anyone finish their project already?', %s, '2024-11-12 23:59:59') RETURNING id;""",
-        (humpfre_id,),
-    )
-    post2_id = cur.fetchone()[0]
-
-    cur.execute(
-        """INSERT INTO "Post" (contents, user_id, created_at) VALUES \
-        ('How long did the intro project take you?', %s, '2024-11-11 23:59:59') RETURNING id;""",
-        (diego_id,),
-    )
-
-    post3_id = cur.fetchone()[0]
-
-    cur.execute(
-        """INSERT INTO "Post" (contents, user_id, created_at) VALUES \
-        ('It was me Hector...', %s, '2024-11-10 23:59:59') RETURNING id;""",
-        (nacho_id,),
-    )
-
-    post4_id = cur.fetchone()[0]
-
-    cur.execute(
-        """INSERT INTO "Post" (contents, user_id, created_at) VALUES \
-        ('Best BCS Character?', %s, '2024-11-10 23:59:59') RETURNING id;""",
-        (jimmy_id,),
-    )
-
-    post5_id = cur.fetchone()[0]
-
-    cur.execute(
-        """INSERT INTO "Post" (contents, user_id, created_at) VALUES \
-        ('Flask is not the one', %s, '2024-11-10 23:59:59') RETURNING id;""",
-        (lalo_id,),
-    )
-
-    cur.execute(
-        """INSERT INTO "Post" (contents, user_id, created_at) VALUES \
-        ('My name is humphrey', %s, '2024-11-10 23:59:59') RETURNING id;""",
-        (humpfre_id,),
-    )
-
-    # Insert data into the Comment table using fetched user_ids and post_ids
-    cur.execute(
-        """INSERT INTO "Comment" (contents, user_id, post_id, created_at) VALUES \
-        ('Apple', %s, %s, '2024-11-13 01:02:03'), 
-        ('Blue', %s, %s, '2024-11-13 02:02:03'), 
-        ('Nope', %s, %s, '2024-11-15 03:15:00'), 
-        ('RIP', %s, %s, '2024-11-15 09:30:40'),
-        ('6 hours', %s, %s, '2024-11-15 09:30:40'),
-        ('12 hours', %s, %s, '2024-11-15 09:30:40'),
-        ('2 hours lol', %s, %s, '2024-11-15 09:30:40'),
-        ('Salamancas', %s, %s, '2024-11-15 09:30:40'),
-        ('Cinema', %s, %s, '2024-11-15 09:30:40'),
-        ('My own tio?!', %s, %s, '2024-11-15 09:30:40'),
-        ('Im humfrey', %s, %s, '2024-11-15 09:30:40'),
-        ('Get owned Hector', %s, %s, '2024-11-15 09:30:40'),
-        ('Me', %s, %s, '2024-11-15 09:30:40'),
-        ('Mike', %s, %s, '2024-11-15 09:30:40');""",
-        (
-            humpfre_id,
-            post1_id,
-            diego_id,
-            post1_id,
-            diego_id,
-            post2_id,
-            jimmy_id,
-            post2_id,
-            humpfre_id,
-            post3_id,
-            jimmy_id,
-            post3_id,
-            nacho_id,
-            post3_id,
-            lalo_id,
-            post3_id,
-            jimmy_id,
-            post4_id,
-            lalo_id,
-            post4_id,
-            humpfre_id,
-            post4_id,
-            diego_id,
-            post4_id,
-            lalo_id,
-            post5_id,
-            nacho_id,
-            post5_id,
-        ),
-    )
-
-    conn.commit()
-
-    cur.close()
-    conn.close()
+    db.add_all([comment1, comment2, comment3, comment4])
+    db.commit()
+    
+    
 
     @app.route("/")
     def home():
-        conn = get_db_connection()
-        cur = conn.cursor()
+        posts = (
+            db.query(Post)
+            .join(User)
+            .order_by(Post.created_at.desc())
+            .all()
+        )
 
-        # Fetch posts with user names and any associated comments
-        cur.execute("""
-            SELECT p.id, p.contents, u.name, p.created_at
-            FROM "Post" p
-            JOIN "User" u ON p.user_id = u.id
-            ORDER BY p.created_at DESC;
-        """)
-        posts = cur.fetchall()
-
-        # Organize posts for template
         post_data = []
         for post in posts:
-            post_id, content, user_name, created_at = post
-            cur.execute(
-                """
-                SELECT c.contents, u.name
-                FROM "Comment" c
-                JOIN "User" u ON c.user_id = u.id
-                WHERE c.post_id = %s
-                ORDER BY c.created_at DESC;
-            """,
-                (post_id,),
+            comments = (
+                db.query(Comment)
+                .join(User)
+                .filter(Comment.post_id == post.id)
+                .order_by(Comment.created_at.desc())
+                .all()
             )
-            comments = cur.fetchall()
             post_data.append(
                 {
-                    "id": post_id,
-                    "content": content,
-                    "user_name": user_name,
-                    "created_at": created_at,
+                    "id": post.id,
+                    "content": post.contents,
+                    "user_name": post.user.name,
+                    "created_at": post.created_at,
                     "comments": [
-                        {"content": c[0], "user_name": c[1]} for c in comments
+                        {"content": c.contents, "user_name": c.user.name} for c in comments
                     ],
                 }
             )
-
-        cur.close()
-        conn.close()
         return render_template("home.html", posts=post_data)
+
 
     @app.route("/admin")
     def admin():
-        conn = get_db_connection()
-        cur = conn.cursor()
+        posts = (
+            db.query(Post)
+            .join(User)
+            .order_by(Post.created_at.desc())
+            .all()
+        )
 
-        # Fetch posts with user names and any associated comments
-        cur.execute("""
-            SELECT p.id, p.contents, u.name, p.created_at
-            FROM "Post" p
-            JOIN "User" u ON p.user_id = u.id
-            ORDER BY p.created_at DESC;
-        """)
-        posts = cur.fetchall()
-
-        # Organize posts for template
         post_data = []
         for post in posts:
-            post_id, content, user_name, created_at = post
-            cur.execute(
-                """
-                SELECT c.id, c.contents, u.name
-                FROM "Comment" c
-                JOIN "User" u ON c.user_id = u.id
-                WHERE c.post_id = %s
-                ORDER BY c.created_at DESC;
-            """,
-                (post_id,),
+            comments = (
+                db.query(Comment)
+                .join(User)
+                .filter(Comment.post_id == post.id)
+                .order_by(Comment.created_at.desc())
+                .all()
             )
-            comments = cur.fetchall()
-
             post_data.append(
                 {
-                    "id": post_id,
-                    "content": content,
-                    "user_name": user_name,
-                    "created_at": created_at,
+                    "id": post.id,
+                    "content": post.contents,
+                    "user_name": post.user.name,
+                    "created_at": post.created_at,
                     "comments": [
-                        {"id": c[0], "content": c[1], "user_name": c[2]}
+                        {"id": c.id, "content": c.contents, "user_name": c.user.name}
                         for c in comments
                     ],
                 }
             )
-
-        cur.close()
-        conn.close()
         return render_template("admin.html", posts=post_data)
+
 
     @app.route("/add_post", methods=["POST"])
     def add_post():
-        # Code to handle the new post
         content = request.form.get("content")
-        if not content.strip():
-            # Use flash to display an error message
-            flash("Post content cannot be empty.", "error")
-            if session["admin"]:
-                return redirect(url_for("admin"))
-            else:
-                return redirect(url_for("home"))
+        user_id = session.get("user_id")
 
-        if "user_id" not in session:
-            # Redirect to login if user is not logged in
-            return redirect(url_for("login"))
+        if user_id:
+            new_post = Post(contents=content, user_id=user_id, created_at=datetime.now())
+            db.add(new_post)
+            db.commit()
 
-        user_id = session["user_id"]
+            return redirect(url_for("admin") if session.get("admin") else url_for("home"))
+        return redirect(url_for("login"))
 
-        # Connect to the database and insert the new post
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute(
-            """INSERT INTO "Post" (contents, user_id, created_at)
-            VALUES (%s, %s, %s)""",
-            (content, user_id, datetime.now()),
-        )
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        # Redirect to the home page to display the new post
-
-        if session["admin"]:
-            return redirect(url_for("admin"))
-        else:
-            return redirect(url_for("home"))
 
     @app.route("/delete_post/<int:post_id>", methods=["POST"])
     def delete_post(post_id):
-        # Ensure that only admins can delete posts
         if not session.get("admin"):
             return redirect(url_for("home"))
 
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        # Delete all comments related to the post
-        cur.execute('DELETE FROM "Comment" WHERE post_id = %s;', (post_id,))
-
-        # Delete the post
-        cur.execute('DELETE FROM "Post" WHERE id = %s;', (post_id,))
-
-        conn.commit()
-        cur.close()
-        conn.close()
-
+        post = db.query(Post).get(post_id)
+        if post:
+            db.delete(post)
+            db.commit()
         return redirect(url_for("admin"))
+
 
     @app.route("/delete_comment/<int:comment_id>", methods=["POST"])
     def delete_comment(comment_id):
-        # Ensure that only admins can delete comments
         if not session.get("admin"):
             return redirect(url_for("home"))
 
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        # Delete the comment
-        cur.execute('DELETE FROM "Comment" WHERE id = %s;', (comment_id,))
-
-        conn.commit()
-        cur.close()
-        conn.close()
-
+        comment = db.query(Comment).get(comment_id)
+        if comment:
+            db.delete(comment)
+            db.commit()
         return redirect(url_for("admin"))
 
     @app.route("/public")
     def public_posts():
-        conn = get_db_connection()
-        cur = conn.cursor()
+        posts = (
+            db.query(Post)
+            .join(User)
+            .order_by(Post.created_at.desc())
+            .all()
+        )
 
-        # Fetch posts and their authors
-        cur.execute("""
-            SELECT p.id, p.contents, u.name, p.created_at
-            FROM "Post" p
-            JOIN "User" u ON p.user_id = u.id
-            ORDER BY p.created_at DESC;
-        """)
-        posts = cur.fetchall()
-
-        # Organize posts with comments
         post_data = []
         for post in posts:
-            post_id, content, user_name, created_at = post
-            # Fetch comments for each post
-            cur.execute(
-                """
-                SELECT c.contents, u.name
-                FROM "Comment" c
-                JOIN "User" u ON c.user_id = u.id
-                WHERE c.post_id = %s
-            """,
-                (post_id,),
+            comments = (
+                db.query(Comment)
+                .join(User)
+                .filter(Comment.post_id == post.id)
+                .all()
             )
-            comments = cur.fetchall()
             post_data.append(
                 {
-                    "content": content,
-                    "user_name": user_name,
-                    "created_at": created_at,
+                    "content": post.contents,
+                    "user_name": post.user.name,
+                    "created_at": post.created_at,
                     "comments": [
-                        {"content": c[0], "user_name": c[1]} for c in comments
+                        {"content": c.contents, "user_name": c.user.name} for c in comments
                     ],
                 }
             )
-
-        cur.close()
-        conn.close()
         return render_template("public_posts.html", posts=post_data)
+
+
 
     @app.route("/comment/<int:post_id>")
     def comment(post_id):
@@ -393,42 +252,26 @@ def create_app(test_config=None):
     def add_comment():
         content = request.form.get("content")
         post_id = request.form.get("post_id")
+        user_id = session.get("user_id")
 
-        if "user_id" not in session:
-            # Redirect to login if user is not logged in
-            return redirect(url_for("login"))
+        if user_id:
+            new_comment = Comment(contents=content, user_id=user_id, post_id=post_id, created_at=datetime.now())
+            db.add(new_comment)
+            db.commit()
 
-        user_id = session["user_id"]
+            return redirect(url_for("admin") if session.get("admin") else url_for("home"))
+        return redirect(url_for("login"))
 
-        # Insert the comment into the database
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute(
-            """INSERT INTO "Comment" (contents, user_id, post_id, created_at)
-            VALUES (%s, %s, %s, %s)""",
-            (content, user_id, post_id, datetime.now()),
-        )
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        # Redirect back to the home page or the admin page, depending on user role
-        return redirect(url_for("admin") if session.get("admin") else url_for("home"))
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
-        # Reset global session values
         if request.method == "POST":
-            session.pop("user_id", None)
-            session.pop("email", None)
-            session.pop("name", None)
-            session.pop("admin", None)
-            session.pop("password", None)
+            session.clear()
 
-            # Grab input email and password from user
             email = request.form["email"]
             password = request.form["password"]
 
+<<<<<<< HEAD
             # Open the database
             conn = psycopg2.connect(
                 database="intro_project",
@@ -448,24 +291,17 @@ def create_app(test_config=None):
             conn.close()
 
             # If there is a match set session global variables for the logged in users data
+=======
+            user = db.query(User).filter_by(email=email, password=encrypt_password(password)).first()
+>>>>>>> a2c3d0a3db93bf9f545209b4bb04d29f4e46ca1d
             if user:
-                session["user_id"] = user[0]
-                session["email"] = user[1]
-                session["name"] = user[2]
-                session["admin"] = user[3]
-                session["password"] = user[4]
+                session["user_id"] = user.id
+                session["email"] = user.email
+                session["name"] = user.name
+                session["admin"] = user.admin
 
-                print(session["admin"])
-
-                if session["admin"]:
-                    return redirect(url_for("admin"))
-
-                # redirect them to logged in home page
-                else:
-                    return redirect(url_for("home"))
-
+                return redirect(url_for("admin") if user.admin else url_for("home"))
             return redirect(url_for("login"))
-
         return render_template("login.html")
     
     @app.route("/delete_post/<int:post_id>", methods=["POST"])
@@ -489,6 +325,8 @@ def create_app(test_config=None):
         return redirect(url_for("admin"))
 
 
+
+
     # Configurations or test config can be applied here if needed
     if test_config:
         app.config.update(test_config)
@@ -497,14 +335,14 @@ def create_app(test_config=None):
 
 
 def get_db_connection():
-    conn = psycopg2.connect(
-        database="intro_project",
-        user="postgres",
-        password="8412",
-        host="localhost",
-        port="5432",
-    )
-    return conn
+    DATABASE_URL = "postgresql://postgres:!Peewee38!@localhost:5645/intro_project"
+
+    engine = create_engine(DATABASE_URL)
+    Base.metadata.create_all(engine)  # Creates the tables
+    
+    DB = sessionmaker(bind=engine)
+    db = DB()
+    return db
 
 
 def get_mock_db_connection():
@@ -516,7 +354,6 @@ def encrypt_password(password: str) -> str:
     # Encrypt password (encode it in base64)
     encoded = base64.urlsafe_b64encode(password.encode()).decode()
     return encoded
-
 
 # Only run the app if this file is executed directly
 if __name__ == "__main__":
