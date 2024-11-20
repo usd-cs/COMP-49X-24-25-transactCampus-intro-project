@@ -4,7 +4,6 @@ from transact_flask.app import create_app, encrypt_password,get_db_connection
 
 @pytest.fixture(scope="function")
 def test_client():
-    # Configure your application to use the test database
     app = create_app(test_config={
         "TESTING": True,
     })
