@@ -3,7 +3,6 @@ from flask import Flask, g, redirect, render_template, request, session, url_for
 from sqlalchemy import (
     create_engine, Column, Integer, String, Boolean, Text, ForeignKey, TIMESTAMP
 )
-from bcrypt import hashpw, gensalt
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 import psycopg2
@@ -62,14 +61,9 @@ def create_app(test_config=None):
     DB = sessionmaker(bind=engine)
     db = DB()
 
-        
-        
-
     app.secret_key = "transact"
 
-    # Connect to the PostgreSQL database
-
-        # Encrypt passwords
+    # Encrypt passwords
     password1 = encrypt_password("007")
     password2 = encrypt_password("hello")
     password3 = encrypt_password("transact")
@@ -106,8 +100,6 @@ def create_app(test_config=None):
 
     db.add_all([comment1, comment2, comment3, comment4])
     db.commit()
-    
-    
 
     @app.route("/")
     def home():
@@ -139,7 +131,6 @@ def create_app(test_config=None):
                 }
             )
         return render_template("home.html", posts=post_data)
-
 
     @app.route("/admin")
     def admin():
@@ -187,7 +178,6 @@ def create_app(test_config=None):
             return redirect(url_for("admin") if session.get("admin") else url_for("home"))
         return redirect(url_for("login"))
 
-
     @app.route("/delete_post/<int:post_id>", methods=["POST"])
     def delete_post(post_id):
         if not session.get("admin"):
@@ -198,7 +188,6 @@ def create_app(test_config=None):
             db.delete(post)
             db.commit()
         return redirect(url_for("admin"))
-
 
     @app.route("/delete_comment/<int:comment_id>", methods=["POST"])
     def delete_comment(comment_id):
@@ -240,8 +229,6 @@ def create_app(test_config=None):
             )
         return render_template("public_posts.html", posts=post_data)
 
-
-
     @app.route("/comment/<int:post_id>")
     def comment(post_id):
         # Pass the post_id to the template for form submission
@@ -261,7 +248,6 @@ def create_app(test_config=None):
 
             return redirect(url_for("admin") if session.get("admin") else url_for("home"))
         return redirect(url_for("login"))
-
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -290,7 +276,6 @@ def create_app(test_config=None):
 
     return app
 
-
 def get_db_connection():
     DATABASE_URL = "postgresql://postgres:!Peewee38!@localhost:5645/intro_project"
 
@@ -301,11 +286,9 @@ def get_db_connection():
     db = DB()
     return db
 
-
 def get_mock_db_connection():
     conn = psycopg2.connect(app.config["DATABASE_URI"])
     return conn
-
 
 def encrypt_password(password: str) -> str:
     # Encrypt password (encode it in base64)
