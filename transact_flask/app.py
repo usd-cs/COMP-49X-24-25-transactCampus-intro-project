@@ -1,8 +1,15 @@
-
 from flask import Flask, g, redirect, render_template, request, session, url_for
 from sqlalchemy import (
-    create_engine, Column, Integer, String, Boolean, Text, ForeignKey, TIMESTAMP
+    create_engine,
+    Column,
+    Integer,
+    String,
+    Boolean,
+    Text,
+    ForeignKey,
+    TIMESTAMP,
 )
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 import psycopg2
@@ -10,6 +17,7 @@ from datetime import datetime
 import base64
 
 Base = declarative_base()
+
 
 # User model
 class User(Base):
@@ -24,40 +32,48 @@ class User(Base):
     posts = relationship("Post", back_populates="user", cascade="all, delete")
     comments = relationship("Comment", back_populates="user", cascade="all, delete")
 
+
 # Post model
 class Post(Base):
     __tablename__ = "Post"
     id = Column(Integer, primary_key=True, autoincrement=True)
     contents = Column(Text, nullable=False)
-    user_id = Column(Integer, ForeignKey("User.id", ondelete="NO ACTION"), nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("User.id", ondelete="NO ACTION"), nullable=False
+    )
     created_at = Column(TIMESTAMP, nullable=False)
 
     # Relationship to user and comments
     user = relationship("User", back_populates="posts")
     comments = relationship("Comment", back_populates="post", cascade="all, delete")
 
+
 # Comment model
 class Comment(Base):
     __tablename__ = "Comment"
     id = Column(Integer, primary_key=True, autoincrement=True)
     contents = Column(Text, nullable=False)
-    user_id = Column(Integer, ForeignKey("User.id", ondelete="NO ACTION"), nullable=False)
-    post_id = Column(Integer, ForeignKey("Post.id", ondelete="NO ACTION"), nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("User.id", ondelete="NO ACTION"), nullable=False
+    )
+    post_id = Column(
+        Integer, ForeignKey("Post.id", ondelete="NO ACTION"), nullable=False
+    )
     created_at = Column(TIMESTAMP, nullable=False)
 
     # Relationships to user and post
     user = relationship("User", back_populates="comments")
     post = relationship("Post", back_populates="comments")
 
+
 def create_app(test_config=None):
     app = Flask(__name__)
-        
-    
+
     DATABASE_URL = "postgresql://postgres:!Peewee38!@localhost:5645/intro_project"
 
     engine = create_engine(DATABASE_URL)
     Base.metadata.create_all(engine)  # Creates the tables
-    
+
     DB = sessionmaker(bind=engine)
     db = DB()
 
@@ -69,9 +85,15 @@ def create_app(test_config=None):
     password3 = encrypt_password("transact")
 
     # Add users
-    jimmy = User(email="Jimmy@sandiego.edu", name="Jimmy", admin=True, password=password1)
-    humpfre = User(email="Humpfre@sandiego.edu", name="Humpfre", admin=False, password=password2)
-    diego = User(email="Diego@sandiego.edu", name="Diego", admin=False, password=password3)
+    jimmy = User(
+        email="Jimmy@sandiego.edu", name="Jimmy", admin=True, password=password1
+    )
+    humpfre = User(
+        email="Humpfre@sandiego.edu", name="Humpfre", admin=False, password=password2
+    )
+    diego = User(
+        email="Diego@sandiego.edu", name="Diego", admin=False, password=password3
+    )
 
     db.add_all([jimmy, humpfre, diego])
     db.commit()
@@ -82,8 +104,16 @@ def create_app(test_config=None):
     diego_id = diego.id
 
     # Add posts
-    post1 = Post(contents="Whats your favorite color?", user_id=jimmy_id, created_at=datetime(2024, 11, 13, 1, 1, 1))
-    post2 = Post(contents="Anyone finish their project already?", user_id=humpfre_id, created_at=datetime(2024, 11, 12, 23, 59, 59))
+    post1 = Post(
+        contents="Whats your favorite color?",
+        user_id=jimmy_id,
+        created_at=datetime(2024, 11, 13, 1, 1, 1),
+    )
+    post2 = Post(
+        contents="Anyone finish their project already?",
+        user_id=humpfre_id,
+        created_at=datetime(2024, 11, 12, 23, 59, 59),
+    )
 
     db.add_all([post1, post2])
     db.commit()
@@ -93,22 +123,37 @@ def create_app(test_config=None):
     post2_id = post2.id
 
     # Add comments
-    comment1 = Comment(contents="Apple", user_id=humpfre_id, post_id=post1_id, created_at=datetime(2024, 11, 13, 1, 2, 3))
-    comment2 = Comment(contents="Blue", user_id=diego_id, post_id=post1_id, created_at=datetime(2024, 11, 13, 2, 2, 3))
-    comment3 = Comment(contents="Nope", user_id=diego_id, post_id=post2_id, created_at=datetime(2024, 11, 15, 3, 15, 0))
-    comment4 = Comment(contents="RIP", user_id=jimmy_id, post_id=post2_id, created_at=datetime(2024, 11, 15, 9, 30, 40))
+    comment1 = Comment(
+        contents="Apple",
+        user_id=humpfre_id,
+        post_id=post1_id,
+        created_at=datetime(2024, 11, 13, 1, 2, 3),
+    )
+    comment2 = Comment(
+        contents="Blue",
+        user_id=diego_id,
+        post_id=post1_id,
+        created_at=datetime(2024, 11, 13, 2, 2, 3),
+    )
+    comment3 = Comment(
+        contents="Nope",
+        user_id=diego_id,
+        post_id=post2_id,
+        created_at=datetime(2024, 11, 15, 3, 15, 0),
+    )
+    comment4 = Comment(
+        contents="RIP",
+        user_id=jimmy_id,
+        post_id=post2_id,
+        created_at=datetime(2024, 11, 15, 9, 30, 40),
+    )
 
     db.add_all([comment1, comment2, comment3, comment4])
     db.commit()
 
     @app.route("/")
     def home():
-        posts = (
-            db.query(Post)
-            .join(User)
-            .order_by(Post.created_at.desc())
-            .all()
-        )
+        posts = db.query(Post).join(User).order_by(Post.created_at.desc()).all()
 
         post_data = []
         for post in posts:
@@ -126,7 +171,8 @@ def create_app(test_config=None):
                     "user_name": post.user.name,
                     "created_at": post.created_at,
                     "comments": [
-                        {"content": c.contents, "user_name": c.user.name} for c in comments
+                        {"content": c.contents, "user_name": c.user.name}
+                        for c in comments
                     ],
                 }
             )
@@ -134,12 +180,7 @@ def create_app(test_config=None):
 
     @app.route("/admin")
     def admin():
-        posts = (
-            db.query(Post)
-            .join(User)
-            .order_by(Post.created_at.desc())
-            .all()
-        )
+        posts = db.query(Post).join(User).order_by(Post.created_at.desc()).all()
 
         post_data = []
         for post in posts:
@@ -164,18 +205,21 @@ def create_app(test_config=None):
             )
         return render_template("admin.html", posts=post_data)
 
-
     @app.route("/add_post", methods=["POST"])
     def add_post():
         content = request.form.get("content")
         user_id = session.get("user_id")
 
         if user_id:
-            new_post = Post(contents=content, user_id=user_id, created_at=datetime.now())
+            new_post = Post(
+                contents=content, user_id=user_id, created_at=datetime.now()
+            )
             db.add(new_post)
             db.commit()
 
-            return redirect(url_for("admin") if session.get("admin") else url_for("home"))
+            return redirect(
+                url_for("admin") if session.get("admin") else url_for("home")
+            )
         return redirect(url_for("login"))
 
     @app.route("/delete_post/<int:post_id>", methods=["POST"])
@@ -202,20 +246,12 @@ def create_app(test_config=None):
 
     @app.route("/public")
     def public_posts():
-        posts = (
-            db.query(Post)
-            .join(User)
-            .order_by(Post.created_at.desc())
-            .all()
-        )
+        posts = db.query(Post).join(User).order_by(Post.created_at.desc()).all()
 
         post_data = []
         for post in posts:
             comments = (
-                db.query(Comment)
-                .join(User)
-                .filter(Comment.post_id == post.id)
-                .all()
+                db.query(Comment).join(User).filter(Comment.post_id == post.id).all()
             )
             post_data.append(
                 {
@@ -223,7 +259,8 @@ def create_app(test_config=None):
                     "user_name": post.user.name,
                     "created_at": post.created_at,
                     "comments": [
-                        {"content": c.contents, "user_name": c.user.name} for c in comments
+                        {"content": c.contents, "user_name": c.user.name}
+                        for c in comments
                     ],
                 }
             )
@@ -242,11 +279,18 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
 
         if user_id:
-            new_comment = Comment(contents=content, user_id=user_id, post_id=post_id, created_at=datetime.now())
+            new_comment = Comment(
+                contents=content,
+                user_id=user_id,
+                post_id=post_id,
+                created_at=datetime.now(),
+            )
             db.add(new_comment)
             db.commit()
 
-            return redirect(url_for("admin") if session.get("admin") else url_for("home"))
+            return redirect(
+                url_for("admin") if session.get("admin") else url_for("home")
+            )
         return redirect(url_for("login"))
 
     @app.route("/login", methods=["GET", "POST"])
@@ -257,7 +301,11 @@ def create_app(test_config=None):
             email = request.form["email"]
             password = request.form["password"]
 
-            user = db.query(User).filter_by(email=email, password=encrypt_password(password)).first()
+            user = (
+                db.query(User)
+                .filter_by(email=email, password=encrypt_password(password))
+                .first()
+            )
             if user:
                 session["user_id"] = user.id
                 session["email"] = user.email
@@ -267,8 +315,6 @@ def create_app(test_config=None):
                 return redirect(url_for("admin") if user.admin else url_for("home"))
             return redirect(url_for("login"))
         return render_template("login.html")
-
-
 
     # Configurations or test config can be applied here if needed
     if test_config:
@@ -281,7 +327,7 @@ def get_db_connection():
 
     engine = create_engine(DATABASE_URL)
     Base.metadata.create_all(engine)  # Creates the tables
-    
+
     DB = sessionmaker(bind=engine)
     db = DB()
     return db
@@ -294,6 +340,7 @@ def encrypt_password(password: str) -> str:
     # Encrypt password (encode it in base64)
     encoded = base64.urlsafe_b64encode(password.encode()).decode()
     return encoded
+
 
 # Only run the app if this file is executed directly
 if __name__ == "__main__":
