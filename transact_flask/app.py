@@ -69,8 +69,9 @@ class Comment(Base):
 def create_app(test_config=None):
     app = Flask(__name__)
 
-    DATABASE_URL = "postgresql://postgres:!Peewee38!@localhost:5645/intro_project"
-
+    DATABASE_URL = (
+        "postgresql://postgres:your_password@localhost:your_port/intro_project"
+    )
     engine = create_engine(DATABASE_URL)
     Base.metadata.create_all(engine)  # Creates the tables
 
@@ -323,7 +324,9 @@ def create_app(test_config=None):
     return app
 
 def get_db_connection():
-    DATABASE_URL = "postgresql://postgres:!Peewee38!@localhost:5645/intro_project"
+    DATABASE_URL = (
+        "postgresql://postgres:your_password@localhost:your_port/intro_project"
+    )
 
     engine = create_engine(DATABASE_URL)
     Base.metadata.create_all(engine)  # Creates the tables
