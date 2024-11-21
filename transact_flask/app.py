@@ -10,7 +10,6 @@ from sqlalchemy import (
     TIMESTAMP,
 )
 
-# from bcrypt import hashpw, gensalt
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 import psycopg2
@@ -79,8 +78,6 @@ def create_app(test_config=None):
     db = DB()
 
     app.secret_key = "transact"
-
-    # Connect to the PostgreSQL database
 
     # Encrypt passwords
     password1 = encrypt_password("007")
@@ -325,7 +322,6 @@ def create_app(test_config=None):
 
     return app
 
-
 def get_db_connection():
     DATABASE_URL = "postgresql://postgres:!Peewee38!@localhost:5645/intro_project"
 
@@ -336,11 +332,9 @@ def get_db_connection():
     db = DB()
     return db
 
-
 def get_mock_db_connection():
     conn = psycopg2.connect(app.config["DATABASE_URI"])
     return conn
-
 
 def encrypt_password(password: str) -> str:
     # Encrypt password (encode it in base64)
